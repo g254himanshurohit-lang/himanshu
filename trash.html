@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trash - StudyVault | Personal Study Notes & Document Storage</title>
+  <meta name="description" content="StudyVault Trash - Restore deleted folders and study documents, or permanently remove items.">
+  <meta property="og:title" content="Trash - StudyVault">
+  <meta property="og:description" content="StudyVault Trash - Restore or permanently remove items.">
+  <meta property="og:type" content="website">
+  <link rel="icon" type="image/svg+xml" href="/assets/studyvault-logo.svg">
+  <style>
+    :root {
+      --bg-page: #f8fafc;
+      --bg-surface: #ffffff;
+      --border-color: #e2e8f0;
+      --border-subtle: #f1f5f9;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --text-light: #94a3b8;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-light: #eff6ff;
+      --sidebar-bg: #0b1329;
+      --sidebar-hover: #1e293b;
+      --sidebar-border: #1e293b;
+      --sidebar-text: #94a3b8;
+      --sidebar-text-active: #ffffff;
+      --danger: #ef4444;
+      --danger-hover: #dc2626;
+      --danger-light: #fef2f2;
+      --success: #10b981;
+      --success-light: #ecfdf5;
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+      --radius: 12px;
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--font-family);
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      display: flex;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    button, input, select { font-family: inherit; }
+
+    /* Sidebar */
+    .sidebar {
+      width: 270px;
+      background-color: var(--sidebar-bg);
+      color: var(--sidebar-text);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      border-right: 1px solid var(--sidebar-border);
+      z-index: 40;
+      transition: transform 0.3s ease;
+    }
+    .brand-section {
+      padding: 24px 20px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    }
+    .brand-logo-img { height: 38px; width: auto; object-fit: contain; }
+
+    .nav-menu {
+      flex: 1;
+      padding: 20px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      overflow-y: auto;
+    }
+    .nav-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #64748b;
+      padding: 12px 12px 6px;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      color: var(--sidebar-text);
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.15s ease;
+      cursor: pointer;
+    }
+    .nav-item:hover { background-color: var(--sidebar-hover); color: #ffffff; }
+    .nav-item.active {
+      background: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%);
+      color: #ffffff;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    }
+    .nav-badge {
+      margin-left: auto;
+      background-color: rgba(255, 255, 255, 0.12);
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 999px;
+    }
+
+    .sidebar-bottom {
+      padding: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      background-color: rgba(0, 0, 0, 0.2);
+    }
+    .storage-mini { display: flex; flex-direction: column; gap: 8px; }
+    .storage-header { display: flex; justify-content: space-between; font-size: 12px; color: #cbd5e1; }
+    .storage-progress {
+      width: 100%;
+      height: 6px;
+      background-color: rgba(255, 255, 255, 0.15);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .storage-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #3b82f6, #60a5fa);
+      border-radius: 999px;
+      transition: width 0.3s ease;
+    }
+
+    /* Main Container */
+    .main-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .top-navbar {
+      height: 70px;
+      background-color: var(--bg-surface);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      box-shadow: var(--shadow-sm);
+    }
+    .nav-left { display: flex; align-items: center; gap: 16px; flex: 1; max-width: 520px; }
+    .mobile-menu-btn { display: none; background: none; border: none; padding: 8px; cursor: pointer; color: var(--text-main); }
+    .search-box-container { position: relative; width: 100%; }
+    .search-input {
+      width: 100%;
+      height: 42px;
+      background-color: var(--bg-page);
+      border: 1px solid var(--border-color);
+      border-radius: 999px;
+      padding: 0 16px 0 42px;
+      font-size: 14px;
+      color: var(--text-main);
+      outline: none;
+      transition: all 0.2s;
+    }
+    .search-input:focus {
+      background-color: #ffffff;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+    .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-light); }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 18px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s ease;
+    }
+    .btn-primary { background-color: var(--primary); color: #ffffff; }
+    .btn-secondary { background-color: #ffffff; border: 1px solid var(--border-color); color: var(--text-main); }
+    .btn-danger { background-color: var(--danger); color: #ffffff; }
+    .btn-danger:hover { background-color: var(--danger-hover); }
+
+    /* Trash Content */
+    .trash-content {
+      padding: 32px;
+      max-width: 1440px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .trash-header-card {
+      background: linear-gradient(135deg, #450a0a 0%, #1e1b4b 100%);
+      color: #ffffff;
+      border-radius: 16px;
+      padding: 28px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-md);
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .trash-header-info h1 {
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .trash-header-info p {
+      font-size: 13px;
+      color: #fca5a5;
+    }
+    .trash-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .trash-toolbar {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .trash-table-container {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+    .trash-table-header {
+      display: grid;
+      grid-template-columns: 3fr 2fr 1fr 1.5fr 140px;
+      padding: 12px 18px;
+      background: var(--bg-page);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-color);
+    }
+    .trash-row {
+      display: grid;
+      grid-template-columns: 3fr 2fr 1fr 1.5fr 140px;
+      align-items: center;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border-subtle);
+      transition: background 0.12s;
+    }
+    .trash-row:last-child { border-bottom: none; }
+    .trash-row:hover { background-color: var(--danger-light); }
+
+    .trash-item-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+    .trash-type-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 800;
+      color: #ffffff;
+      flex-shrink: 0;
+    }
+    .trash-item-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-main);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .trash-origin-path {
+      font-size: 12px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .trash-size, .trash-date {
+      font-size: 12px;
+      color: var(--text-light);
+    }
+    .trash-row-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+    .action-icon-btn {
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      border: 1px solid var(--border-color);
+      background: #ffffff;
+    }
+    .action-icon-btn.restore:hover {
+      background-color: var(--success-light);
+      color: var(--success);
+      border-color: #a7f3d0;
+    }
+    .action-icon-btn.delete-perm:hover {
+      background-color: var(--danger-light);
+      color: var(--danger);
+      border-color: #fecaca;
+    }
+
+    /* Empty State */
+    .trash-empty-state {
+      padding: 64px 20px;
+      text-align: center;
+      background: #ffffff;
+      border-radius: var(--radius);
+      border: 1px dashed var(--border-color);
+    }
+    .trash-empty-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: #f1f5f9;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+    .modal-overlay.active { opacity: 1; pointer-events: auto; }
+    .modal-card {
+      background: #ffffff;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 440px;
+      padding: 28px;
+      box-shadow: var(--shadow-lg);
+      transform: translateY(12px) scale(0.98);
+      transition: transform 0.2s ease;
+    }
+    .modal-overlay.active .modal-card { transform: translateY(0) scale(1); }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .modal-title { font-size: 18px; font-weight: 800; color: var(--text-main); }
+    .modal-body-text { font-size: 14px; color: var(--text-muted); line-height: 1.5; margin-bottom: 20px; }
+    .modal-footer { display: flex; justify-content: flex-end; gap: 12px; }
+
+    /* Toast */
+    .toast-container { position: fixed; bottom: 24px; right: 24px; display: flex; flex-direction: column; gap: 10px; z-index: 2000; }
+    .toast {
+      background: #0f172a;
+      color: #ffffff;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 13px;
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .toast.success { border-left: 4px solid var(--success); }
+    .toast.error { border-left: 4px solid var(--danger); }
+
+    @media (max-width: 768px) {
+      .sidebar { position: fixed; left: 0; top: 0; bottom: 0; transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
+      .mobile-menu-btn { display: flex; }
+      .top-navbar { padding: 0 16px; }
+      .trash-content { padding: 18px 14px; }
+      .trash-table-header { display: none; }
+      .trash-row { grid-template-columns: 1fr; gap: 8px; }
+      .trash-origin-path, .trash-size { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand-section">
+      <img src="/assets/studyvault-logo.svg" alt="StudyVault Logo" class="brand-logo-img">
+    </div>
+
+    <nav class="nav-menu">
+      <div class="nav-label">Main Vault</div>
+      <a href="index.html" class="nav-item">
+        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg></span>
+        Dashboard
+      </a>
+      <a href="library.html" class="nav-item">
+        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg></span>
+        My Library
+        <span class="nav-badge" id="sidebarDocBadge">0</span>
+      </a>
+      <a href="trash.html" class="nav-item active">
+        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></span>
+        Trash
+        <span class="nav-badge" id="sidebarTrashBadge">0</span>
+      </a>
+      <a href="settings.html" class="nav-item">
+        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></span>
+        Settings & Backup
+      </a>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <div class="storage-mini">
+        <div class="storage-header">
+          <span>Storage Quota</span>
+          <span id="sidebarStorageText">0 MB / 100 MB</span>
+        </div>
+        <div class="storage-progress">
+          <div class="storage-bar-fill" id="sidebarStorageBar" style="width: 0%;"></div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Container -->
+  <div class="main-wrapper">
+    <!-- Navbar -->
+    <header class="top-navbar">
+      <div class="nav-left">
+        <button class="mobile-menu-btn" id="mobileMenuBtn">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </button>
+        <div class="search-box-container">
+          <span class="search-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          </span>
+          <input type="text" class="search-input" id="trashSearchInput" placeholder="Search deleted items..." autocomplete="off">
+        </div>
+      </div>
+      <div class="nav-right">
+        <a href="library.html" class="btn btn-primary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+          Go to Library
+        </a>
+      </div>
+    </header>
+
+    <!-- Main Trash View -->
+    <main class="trash-content">
+      <!-- Header Banner -->
+      <section class="trash-header-card">
+        <div class="trash-header-info">
+          <h1>
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            Trash & Recovery Vault
+          </h1>
+          <p id="trashSummaryText">Items here can be restored back to your library or deleted permanently to free up quota.</p>
+        </div>
+        <div class="trash-header-actions">
+          <button class="btn btn-secondary" onclick="restoreAllTrash()" id="restoreAllBtn">Restore All</button>
+          <button class="btn btn-danger" onclick="openEmptyTrashModal()" id="emptyTrashBtn">Empty Trash</button>
+        </div>
+      </section>
+
+      <!-- Table Container -->
+      <div class="trash-table-container" id="trashTableContainer">
+        <div class="trash-table-header">
+          <span>Item Name</span>
+          <span>Original Location</span>
+          <span>Size</span>
+          <span>Deleted At</span>
+          <span style="text-align: right;">Action</span>
+        </div>
+        <div id="trashItemsList"></div>
+      </div>
+
+      <!-- Empty State -->
+      <div class="trash-empty-state" id="trashEmptyState" style="display: none;">
+        <div class="trash-empty-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+        </div>
+        <h3 style="font-size: 18px; font-weight: 700; color: var(--text-main); margin-bottom: 6px;">Trash is Empty</h3>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">All your study notes, textbooks, and folders are safe in your active vault.</p>
+        <a href="library.html" class="btn btn-primary">Browse Library</a>
+      </div>
+    </main>
+  </div>
+
+  <!-- Confirmation Modal -->
+  <div class="modal-overlay" id="confirmModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title" id="confirmModalTitle">Permanent Deletion</h3>
+        <button class="modal-close" onclick="closeConfirmModal()">&times;</button>
+      </div>
+      <div class="modal-body-text" id="confirmModalText">
+        Are you sure you want to permanently delete this item? This action cannot be reversed.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeConfirmModal()">Cancel</button>
+        <button type="button" class="btn btn-danger" id="confirmActionBtn">Delete Permanently</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script>
+    const STORAGE_KEY = 'STUDYVAULT_DATA_V2';
+    let pendingAction = null;
+
+    const INITIAL_SEED_DATA = {
+      folders: [
+        { id: 'f-cs', name: 'Computer Science', parentId: null, category: 'subject', color: '#4f46e5', createdAt: Date.now() - 86400000 * 10, updatedAt: Date.now() },
+        { id: 'f-algo', name: 'Algorithms & Data Structures', parentId: 'f-cs', category: 'subject', color: '#0284c7', createdAt: Date.now() - 86400000 * 8, updatedAt: Date.now() },
+        { id: 'f-ch4', name: 'Chapter 4 - Graph Algorithms', parentId: 'f-algo', category: 'chapter', color: '#0891b2', createdAt: Date.now() - 86400000 * 5, updatedAt: Date.now() },
+        { id: 'f-unit2', name: 'Unit 2 - Dijkstra & Shortest Path', parentId: 'f-ch4', category: 'unit', color: '#3b82f6', createdAt: Date.now() - 86400000 * 3, updatedAt: Date.now() },
+        { id: 'f-math', name: 'Applied Mathematics', parentId: null, category: 'subject', color: '#059669', createdAt: Date.now() - 86400000 * 9, updatedAt: Date.now() },
+        { id: 'f-calc', name: 'Multivariable Calculus', parentId: 'f-math', category: 'chapter', color: '#10b981', createdAt: Date.now() - 86400000 * 4, updatedAt: Date.now() },
+        { id: 'f-phys', name: 'Physics & Engineering', parentId: null, category: 'subject', color: '#d97706', createdAt: Date.now() - 86400000 * 7, updatedAt: Date.now() },
+      ],
+      documents: [
+        {
+          id: 'doc-1',
+          name: 'Graph_Algorithms_Dijkstra_Proof.pdf',
+          folderId: 'f-unit2',
+          size: 2450000,
+          type: 'pdf',
+          mimeType: 'application/pdf',
+          starred: true,
+          createdAt: Date.now() - 86400000 * 2,
+          updatedAt: Date.now() - 86400000 * 2,
+          tags: ['Algorithms', 'Exam Prep'],
+          contentPreview: 'DIJKSTRA ALGORITHM FORMAL PROOF & COMPLEXITY ANALYSIS\n\nTheorem: Dijkstra algorithm finds the shortest path from a single source vertex to all other vertices in a weighted graph with non-negative edge weights in O((V + E) log V) time.'
+        },
+        {
+          id: 'doc-2',
+          name: 'Linear_Transformations_Summary.pdf',
+          folderId: 'f-calc',
+          size: 1820000,
+          type: 'pdf',
+          mimeType: 'application/pdf',
+          starred: true,
+          createdAt: Date.now() - 86400000 * 3,
+          updatedAt: Date.now() - 86400000 * 3,
+          tags: ['Math', 'Calculus'],
+          contentPreview: 'LINEAR TRANSFORMATIONS & EIGENVALUES CHEATSHEET\n\nDefinition: A mapping T: V -> W is a linear transformation if T(u+v)=T(u)+T(v) and T(cu)=cT(u).'
+        }
+      ],
+      trash: [],
+      settings: {
+        userName: 'Scholar',
+        userEmail: 'scholar@studyvault.edu',
+        institution: 'Institute of Science & Technology',
+        quotaBytes: 104857600,
+        theme: 'light'
+      }
+    };
+
+    function getStore() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_SEED_DATA));
+          return JSON.parse(JSON.stringify(INITIAL_SEED_DATA));
+        }
+        return JSON.parse(raw);
+      } catch (e) {
+        return JSON.parse(JSON.stringify(INITIAL_SEED_DATA));
+      }
+    }
+
+    function saveStore(data) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      window.dispatchEvent(new Event('studyvault:data-changed'));
+      renderTrash();
+    }
+
+    function formatBytes(bytes, decimals = 1) {
+      if (!bytes || bytes === 0) return '0 B';
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return (bytes / Math.pow(k, i)).toFixed(decimals) + ' ' + sizes[i];
+    }
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.innerHTML = `<span>${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.3s';
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    function renderTrash() {
+      const store = getStore();
+      const trash = store.trash || [];
+      const allDocs = store.documents || [];
+      const settings = store.settings || {};
+
+      document.getElementById('sidebarDocBadge').textContent = allDocs.length;
+      document.getElementById('sidebarTrashBadge').textContent = trash.length;
+
+      // Storage
+      const totalBytes = allDocs.reduce((acc, d) => acc + (d.size || 0), 0);
+      const quota = settings.quotaBytes || 104857600;
+      const pct = Math.min(100, (totalBytes / quota) * 100).toFixed(1);
+      document.getElementById('sidebarStorageText').textContent = `${formatBytes(totalBytes)} / ${formatBytes(quota)}`;
+      document.getElementById('sidebarStorageBar').style.width = `${pct}%`;
+
+      const listContainer = document.getElementById('trashItemsList');
+      const emptyState = document.getElementById('trashEmptyState');
+      const tableContainer = document.getElementById('trashTableContainer');
+      const restoreAllBtn = document.getElementById('restoreAllBtn');
+      const emptyTrashBtn = document.getElementById('emptyTrashBtn');
+
+      // Filter search
+      const q = (document.getElementById('trashSearchInput').value || '').trim().toLowerCase();
+      let filtered = trash;
+      if (q) {
+        filtered = trash.filter(item => item.name.toLowerCase().includes(q) || (item.originalPath && item.originalPath.toLowerCase().includes(q)));
+      }
+
+      if (trash.length === 0) {
+        tableContainer.style.display = 'none';
+        emptyState.style.display = 'block';
+        restoreAllBtn.style.display = 'none';
+        emptyTrashBtn.style.display = 'none';
+        document.getElementById('trashSummaryText').textContent = 'No deleted items found. Your vault is completely organized.';
+        return;
+      }
+
+      tableContainer.style.display = 'block';
+      emptyState.style.display = 'none';
+      restoreAllBtn.style.display = 'inline-flex';
+      emptyTrashBtn.style.display = 'inline-flex';
+
+      const totalReclaimable = trash.reduce((sum, item) => sum + (item.data && item.data.size ? item.data.size : 0), 0);
+      document.getElementById('trashSummaryText').textContent = `${trash.length} item(s) in trash (${formatBytes(totalReclaimable)} reclaimable).`;
+
+      listContainer.innerHTML = '';
+      if (filtered.length === 0) {
+        listContainer.innerHTML = `<div style="padding: 32px; text-align: center; color: var(--text-muted);">No deleted items matched "${q}".</div>`;
+        return;
+      }
+
+      filtered.forEach(item => {
+        const isFolder = item.itemType === 'folder';
+        const iconBg = isFolder ? '#2563eb' : '#ef4444';
+        const iconSymbol = isFolder ? '📁' : '📄';
+        const sizeStr = isFolder ? 'Folder' : formatBytes(item.data ? item.data.size : 0);
+        const dateStr = new Date(item.deletedAt || Date.now()).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+        const row = document.createElement('div');
+        row.className = 'trash-row';
+        row.innerHTML = `
+          <div class="trash-item-info">
+            <div class="trash-type-icon" style="background-color: ${iconBg};">
+              ${iconSymbol}
+            </div>
+            <div>
+              <div class="trash-item-title" title="${item.name}">${item.name}</div>
+              <div style="font-size: 11px; color: var(--text-light);">${isFolder ? 'Folder & Contents' : (item.data.type || 'Doc').toUpperCase()}</div>
+            </div>
+          </div>
+          <div class="trash-origin-path" title="${item.originalPath || 'Vault Root'}">
+            ${item.originalPath || 'Vault Root'}
+          </div>
+          <div class="trash-size">${sizeStr}</div>
+          <div class="trash-date">${dateStr}</div>
+          <div class="trash-row-actions">
+            <button class="action-icon-btn restore" onclick="restoreItem('${item.id}')" title="Restore back to library">
+              ↩ Restore
+            </button>
+            <button class="action-icon-btn delete-perm" onclick="promptPermanentDelete('${item.id}')" title="Delete permanently">
+              ✕
+            </button>
+          </div>
+        `;
+        listContainer.appendChild(row);
+      });
+    }
+
+    /**
+     * Restore Individual Item
+     */
+    function restoreItem(trashId) {
+      const store = getStore();
+      const item = store.trash.find(t => t.id === trashId);
+      if (!item) return;
+
+      if (item.itemType === 'folder') {
+        const folder = item.data;
+        // Check if original parent exists, if not restore to root
+        const parentExists = folder.parentId ? store.folders.some(f => f.id === folder.parentId) : true;
+        if (!parentExists) folder.parentId = null;
+        store.folders.push(folder);
+      } else {
+        const doc = item.data;
+        const parentExists = doc.folderId ? store.folders.some(f => f.id === doc.folderId) : true;
+        if (!parentExists) doc.folderId = null;
+        store.documents.push(doc);
+      }
+
+      store.trash = store.trash.filter(t => t.id !== trashId);
+      saveStore(store);
+      showToast(`Restored "${item.name}" back to library`, 'success');
+    }
+
+    /**
+     * Restore All
+     */
+    function restoreAllTrash() {
+      const store = getStore();
+      if (!store.trash || store.trash.length === 0) return;
+
+      store.trash.forEach(item => {
+        if (item.itemType === 'folder') {
+          const folder = item.data;
+          const parentExists = folder.parentId ? store.folders.some(f => f.id === folder.parentId) : true;
+          if (!parentExists) folder.parentId = null;
+          store.folders.push(folder);
+        } else {
+          const doc = item.data;
+          const parentExists = doc.folderId ? store.folders.some(f => f.id === doc.folderId) : true;
+          if (!parentExists) doc.folderId = null;
+          store.documents.push(doc);
+        }
+      });
+
+      const count = store.trash.length;
+      store.trash = [];
+      saveStore(store);
+      showToast(`Restored all ${count} items back to your library`, 'success');
+    }
+
+    /**
+     * Permanent Delete Confirmations
+     */
+    function promptPermanentDelete(trashId) {
+      const store = getStore();
+      const item = store.trash.find(t => t.id === trashId);
+      if (!item) return;
+
+      document.getElementById('confirmModalTitle').textContent = 'Delete Permanently';
+      document.getElementById('confirmModalText').innerHTML = `
+        Are you sure you want to permanently delete <strong>"${escapeHtml(item.name)}"</strong>?<br><br>
+        <span style="color: var(--danger); font-size: 13px;">This action is permanent and cannot be undone.</span>
+      `;
+
+      pendingAction = () => {
+        store.trash = store.trash.filter(t => t.id !== trashId);
+        saveStore(store);
+        showToast(`Permanently deleted "${item.name}"`, 'info');
+        closeConfirmModal();
+      };
+
+      document.getElementById('confirmActionBtn').onclick = pendingAction;
+      document.getElementById('confirmModal').classList.add('active');
+    }
+
+    function openEmptyTrashModal() {
+      const store = getStore();
+      if (!store.trash || store.trash.length === 0) return;
+
+      document.getElementById('confirmModalTitle').textContent = 'Empty Entire Trash';
+      document.getElementById('confirmModalText').innerHTML = `
+        Are you sure you want to permanently delete all <strong>${store.trash.length} item(s)</strong> in your trash?<br><br>
+        <span style="color: var(--danger); font-size: 13px;">All files and folders will be permanently wiped.</span>
+      `;
+
+      pendingAction = () => {
+        const count = store.trash.length;
+        store.trash = [];
+        saveStore(store);
+        showToast(`Emptied trash (${count} items removed)`, 'info');
+        closeConfirmModal();
+      };
+
+      document.getElementById('confirmActionBtn').onclick = pendingAction;
+      document.getElementById('confirmModal').classList.add('active');
+    }
+
+    function closeConfirmModal() {
+      document.getElementById('confirmModal').classList.remove('active');
+      pendingAction = null;
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    document.getElementById('trashSearchInput').addEventListener('input', () => renderTrash());
+
+    // Mobile
+    document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+      document.getElementById('sidebar').classList.toggle('open');
+    });
+
+    window.addEventListener('storage', () => renderTrash());
+    window.addEventListener('studyvault:data-changed', () => renderTrash());
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderTrash();
+    });
+  </script>
+</body>
+</html>

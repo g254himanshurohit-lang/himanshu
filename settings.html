@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings & Backup - StudyVault | Personal Study Notes & Document Storage</title>
+  <meta name="description" content="StudyVault Settings & Backup - Monitor storage quota, export JSON backups, and restore your study library data.">
+  <meta property="og:title" content="Settings & Backup - StudyVault">
+  <meta property="og:description" content="Manage your vault storage, JSON backups, and user settings.">
+  <meta property="og:type" content="website">
+  <link rel="icon" type="image/svg+xml" href="/assets/studyvault-logo.svg">
+  <style>
+    :root {
+      --bg-page: #f8fafc;
+      --bg-surface: #ffffff;
+      --border-color: #e2e8f0;
+      --border-subtle: #f1f5f9;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --text-light: #94a3b8;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-light: #eff6ff;
+      --sidebar-bg: #0b1329;
+      --sidebar-hover: #1e293b;
+      --sidebar-border: #1e293b;
+      --sidebar-text: #94a3b8;
+      --sidebar-text-active: #ffffff;
+      --danger: #ef4444;
+      --danger-light: #fef2f2;
+      --success: #10b981;
+      --success-light: #ecfdf5;
+      --warning: #f59e0b;
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+      --radius: 12px;
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--font-family);
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      display: flex;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    button, input, select { font-family: inherit; }
+
+    /* Sidebar */
+    .sidebar {
+      width: 270px;
+      background-color: var(--sidebar-bg);
+      color: var(--sidebar-text);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      border-right: 1px solid var(--sidebar-border);
+      z-index: 40;
+      transition: transform 0.3s ease;
+    }
+    .brand-section {
+      padding: 24px 20px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    }
+    .brand-logo-img { height: 38px; width: auto; object-fit: contain; }
+
+    .nav-menu {
+      flex: 1;
+      padding: 20px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      overflow-y: auto;
+    }
+    .nav-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #64748b;
+      padding: 12px 12px 6px;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      color: var(--sidebar-text);
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.15s ease;
+      cursor: pointer;
+    }
+    .nav-item:hover { background-color: var(--sidebar-hover); color: #ffffff; }
+    .nav-item.active {
+      background: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%);
+      color: #ffffff;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    }
+    .nav-badge {
+      margin-left: auto;
+      background-color: rgba(255, 255, 255, 0.12);
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 999px;
+    }
+
+    .sidebar-bottom {
+      padding: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      background-color: rgba(0, 0, 0, 0.2);
+    }
+    .storage-mini { display: flex; flex-direction: column; gap: 8px; }
+    .storage-header { display: flex; justify-content: space-between; font-size: 12px; color: #cbd5e1; }
+    .storage-progress {
+      width: 100%;
+      height: 6px;
+      background-color: rgba(255, 255, 255, 0.15);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .storage-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #3b82f6, #60a5fa);
+      border-radius: 999px;
+      transition: width 0.3s ease;
+    }
+
+    /* Main Container */
+    .main-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .top-navbar {
+      height: 70px;
+      background-color: var(--bg-surface);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      box-shadow: var(--shadow-sm);
+    }
+    .nav-left { display: flex; align-items: center; gap: 16px; }
+    .mobile-menu-btn { display: none; background: none; border: none; padding: 8px; cursor: pointer; color: var(--text-main); }
+    .page-header-title { font-size: 18px; font-weight: 800; color: var(--text-main); }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 18px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s ease;
+    }
+    .btn-primary { background-color: var(--primary); color: #ffffff; }
+    .btn-primary:hover { background-color: var(--primary-hover); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25); }
+    .btn-secondary { background-color: #ffffff; border: 1px solid var(--border-color); color: var(--text-main); }
+    .btn-secondary:hover { background-color: var(--bg-page); border-color: #cbd5e1; }
+    .btn-danger { background-color: var(--danger-light); color: var(--danger); border: 1px solid #fecaca; }
+    .btn-danger:hover { background-color: #fee2e2; }
+
+    /* Content Area */
+    .settings-content {
+      padding: 32px;
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    .settings-card {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 28px;
+      box-shadow: var(--shadow-sm);
+    }
+    .card-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 14px;
+    }
+    .card-title {
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .card-subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* Storage Meter Section */
+    .storage-meter-container {
+      margin-bottom: 24px;
+    }
+    .storage-gauge-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 10px;
+    }
+    .storage-used-large {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+    .storage-quota-large {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+    .stacked-meter-large {
+      height: 18px;
+      border-radius: 999px;
+      background: #f1f5f9;
+      display: flex;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    .meter-slice {
+      height: 100%;
+      transition: width 0.3s ease;
+    }
+
+    /* Categorized Grid */
+    .categories-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 20px;
+    }
+    .category-box {
+      background: var(--bg-page);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .cat-box-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+    .cat-color-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    .cat-box-stats {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .cat-box-size {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
+    /* Backup & Restore Grid */
+    .backup-actions-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    .backup-card-sub {
+      border: 1px dashed var(--border-color);
+      border-radius: 12px;
+      padding: 24px;
+      background: var(--bg-page);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 12px;
+    }
+    .backup-icon-circle {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: #eff6ff;
+      color: #2563eb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Form Fields */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .form-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+    .form-control {
+      padding: 10px 14px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+    }
+    .form-control:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+
+    /* Toast */
+    .toast-container { position: fixed; bottom: 24px; right: 24px; display: flex; flex-direction: column; gap: 10px; z-index: 2000; }
+    .toast {
+      background: #0f172a;
+      color: #ffffff;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 13px;
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .toast.success { border-left: 4px solid var(--success); }
+    .toast.error { border-left: 4px solid var(--danger); }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+    .modal-overlay.active { opacity: 1; pointer-events: auto; }
+    .modal-card {
+      background: #ffffff;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 480px;
+      padding: 28px;
+      box-shadow: var(--shadow-lg);
+    }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .modal-title { font-size: 18px; font-weight: 800; }
+    .modal-close { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-muted); }
+    .modal-footer { display: flex; justify-content: flex-end; gap: 12px; margin-top: 20px; }
+
+    @media (max-width: 768px) {
+      .sidebar { position: fixed; left: 0; top: 0; bottom: 0; transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
+      .mobile-menu-btn { display: flex; }
+      .top-navbar { padding: 0 16px; }
+      .settings-content { padding: 20px 16px; }
+      .categories-grid { grid-template-columns: 1fr; }
+      .backup-actions-grid { grid-template-columns: 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand-section">
+      <img src="/assets/studyvault-logo.svg" alt="StudyVault Logo" class="brand-logo-img">
+    </div>
+
+    <nav class="nav-menu">
+      <div class="nav-label">Main Vault</div>
+      <a href="index.html" class="nav-item">
+        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg></span>
+        Dashboard
+      </a>
+      <a href="library.html" class="nav-item">
+        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg></span>
+        My Library
+        <span class="nav-badge" id="sidebarDocBadge">0</span>
+      </a>
+      <a href="trash.html" class="nav-item">
+        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></span>
+        Trash
+        <span class="nav-badge" id="sidebarTrashBadge">0</span>
+      </a>
+      <a href="settings.html" class="nav-item active">
+        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></span>
+        Settings & Backup
+      </a>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <div class="storage-mini">
+        <div class="storage-header">
+          <span>Storage Quota</span>
+          <span id="sidebarStorageText">0 MB / 100 MB</span>
+        </div>
+        <div class="storage-progress">
+          <div class="storage-bar-fill" id="sidebarStorageBar" style="width: 0%;"></div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Container -->
+  <div class="main-wrapper">
+    <!-- Top Navbar -->
+    <header class="top-navbar">
+      <div class="nav-left">
+        <button class="mobile-menu-btn" id="mobileMenuBtn">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </button>
+        <span class="page-header-title">Settings, Storage & Backup</span>
+      </div>
+      <div>
+        <a href="library.html" class="btn btn-secondary">
+          Back to Library
+        </a>
+      </div>
+    </header>
+
+    <!-- Main Settings View -->
+    <main class="settings-content">
+      <!-- 1. Storage Usage Meter & Analytics -->
+      <section class="settings-card">
+        <div class="card-title-row">
+          <div>
+            <h2 class="card-title">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>
+              Storage Usage & Quota Meter
+            </h2>
+            <p class="card-subtitle">Real-time breakdown of all study notes, documents, and media stored in your personal vault.</p>
+          </div>
+        </div>
+
+        <div class="storage-meter-container">
+          <div class="storage-gauge-header">
+            <div>
+              <span class="storage-used-large" id="mainStorageUsed">0 MB</span>
+              <span style="font-size: 14px; color: var(--text-muted); margin-left: 6px;">used</span>
+            </div>
+            <div class="storage-quota-large" id="mainStorageQuotaLabel">of 100 MB Quota (0%)</div>
+          </div>
+
+          <div class="stacked-meter-large" id="mainStackedMeter"></div>
+        </div>
+
+        <!-- Categorized Storage Breakdown Cards -->
+        <div class="categories-grid" id="categoriesGrid"></div>
+      </section>
+
+      <!-- 2. Backup & Restore Section -->
+      <section class="settings-card">
+        <div class="card-title-row">
+          <div>
+            <h2 class="card-title">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="8 17 12 21 16 17"></polyline><line x1="12" y1="12" x2="12" y2="21"></line><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"></path></svg>
+              Library Data Backup & Recovery
+            </h2>
+            <p class="card-subtitle">Download your entire study hierarchy, documents, and notes as a portable JSON backup file, or restore from an existing backup.</p>
+          </div>
+        </div>
+
+        <div class="backup-actions-grid">
+          <!-- Download Backup -->
+          <div class="backup-card-sub">
+            <div class="backup-icon-circle">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            </div>
+            <div>
+              <h3 style="font-size: 16px; font-weight: 700; color: var(--text-main); margin-bottom: 4px;">Download JSON Backup</h3>
+              <p style="font-size: 12px; color: var(--text-muted);">Exports all folders, documents, metadata, and tags into a single portable backup file.</p>
+            </div>
+            <button class="btn btn-primary" onclick="exportJsonBackup()" style="width: 100%; justify-content: center;">
+              Download Backup JSON
+            </button>
+          </div>
+
+          <!-- Upload Backup -->
+          <div class="backup-card-sub">
+            <div class="backup-icon-circle" style="background: #ecfdf5; color: #059669;">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+            </div>
+            <div>
+              <h3 style="font-size: 16px; font-weight: 700; color: var(--text-main); margin-bottom: 4px;">Upload & Restore Backup</h3>
+              <p style="font-size: 12px; color: var(--text-muted);">Select or drop a previous StudyVault JSON backup file to restore library data.</p>
+            </div>
+            <input type="file" id="jsonBackupInput" accept=".json,application/json" style="display:none;" onchange="handleBackupFileSelected(event)">
+            <button class="btn btn-secondary" onclick="document.getElementById('jsonBackupInput').click()" style="width: 100%; justify-content: center;">
+              Select Backup File
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. User Profile & Vault Preferences -->
+      <section class="settings-card">
+        <div class="card-title-row">
+          <div>
+            <h2 class="card-title">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+              Student Profile & Vault Preferences
+            </h2>
+            <p class="card-subtitle">Personalize your scholar profile and set your storage quota tier.</p>
+          </div>
+        </div>
+
+        <form id="profileForm" onsubmit="handleSaveProfile(event)">
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label" for="userNameInput">Scholar / Display Name</label>
+              <input type="text" id="userNameInput" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="userEmailInput">Academic Email</label>
+              <input type="email" id="userEmailInput" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="userInstitutionInput">University / Institution</label>
+              <input type="text" id="userInstitutionInput" class="form-control">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="quotaTierSelect">Storage Quota Tier</label>
+              <select id="quotaTierSelect" class="form-control">
+                <option value="104857600">100 MB (Standard Free Vault)</option>
+                <option value="262144000">250 MB (Pro Scholar Tier)</option>
+                <option value="524288000">500 MB (Graduate Researcher Tier)</option>
+                <option value="1073741824">1 GB (Full Academic Archive)</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- 4. Firebase Cloud Sync & Reset Tools -->
+      <section class="settings-card">
+        <div class="card-title-row">
+          <div>
+            <h2 class="card-title">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>
+              Vault Cloud & Data Management
+            </h2>
+            <p class="card-subtitle">Manage cloud synchronization and reset options.</p>
+          </div>
+          <span style="font-size: 12px; font-weight: 700; color: var(--success); background: var(--success-light); padding: 4px 10px; border-radius: 999px;">
+            ✓ Vault Engine Active
+          </span>
+        </div>
+
+        <div style="display: flex; gap: 14px; flex-wrap: wrap;">
+          <button class="btn btn-secondary" onclick="openResetSampleModal()">
+            Reset to Sample Academic Vault
+          </button>
+          <button class="btn btn-danger" onclick="openClearDataModal()">
+            Wipe Entire Vault Data
+          </button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Confirmation Modal -->
+  <div class="modal-overlay" id="confirmModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title" id="confirmModalTitle">Confirm Action</h3>
+        <button class="modal-close" onclick="closeConfirmModal()">&times;</button>
+      </div>
+      <div id="confirmModalBody" style="font-size: 14px; color: var(--text-muted); line-height: 1.5; margin-bottom: 20px;"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeConfirmModal()">Cancel</button>
+        <button type="button" class="btn btn-primary" id="confirmSubmitBtn">Proceed</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script>
+    const STORAGE_KEY = 'STUDYVAULT_DATA_V2';
+    let pendingConfirm = null;
+
+    const INITIAL_SEED_DATA = {
+      folders: [
+        { id: 'f-cs', name: 'Computer Science', parentId: null, category: 'subject', color: '#4f46e5', createdAt: Date.now() - 86400000 * 10, updatedAt: Date.now() },
+        { id: 'f-algo', name: 'Algorithms & Data Structures', parentId: 'f-cs', category: 'subject', color: '#0284c7', createdAt: Date.now() - 86400000 * 8, updatedAt: Date.now() },
+        { id: 'f-ch4', name: 'Chapter 4 - Graph Algorithms', parentId: 'f-algo', category: 'chapter', color: '#0891b2', createdAt: Date.now() - 86400000 * 5, updatedAt: Date.now() },
+        { id: 'f-unit2', name: 'Unit 2 - Dijkstra & Shortest Path', parentId: 'f-ch4', category: 'unit', color: '#3b82f6', createdAt: Date.now() - 86400000 * 3, updatedAt: Date.now() },
+        { id: 'f-math', name: 'Applied Mathematics', parentId: null, category: 'subject', color: '#059669', createdAt: Date.now() - 86400000 * 9, updatedAt: Date.now() },
+        { id: 'f-calc', name: 'Multivariable Calculus', parentId: 'f-math', category: 'chapter', color: '#10b981', createdAt: Date.now() - 86400000 * 4, updatedAt: Date.now() },
+        { id: 'f-phys', name: 'Physics & Engineering', parentId: null, category: 'subject', color: '#d97706', createdAt: Date.now() - 86400000 * 7, updatedAt: Date.now() },
+      ],
+      documents: [
+        {
+          id: 'doc-1',
+          name: 'Graph_Algorithms_Dijkstra_Proof.pdf',
+          folderId: 'f-unit2',
+          size: 2450000,
+          type: 'pdf',
+          mimeType: 'application/pdf',
+          starred: true,
+          createdAt: Date.now() - 86400000 * 2,
+          updatedAt: Date.now() - 86400000 * 2,
+          tags: ['Algorithms', 'Exam Prep'],
+          contentPreview: 'DIJKSTRA ALGORITHM FORMAL PROOF & COMPLEXITY ANALYSIS\n\nTheorem: Dijkstra algorithm finds the shortest path from a single source vertex to all other vertices in a weighted graph with non-negative edge weights in O((V + E) log V) time.'
+        },
+        {
+          id: 'doc-2',
+          name: 'Linear_Transformations_Summary.pdf',
+          folderId: 'f-calc',
+          size: 1820000,
+          type: 'pdf',
+          mimeType: 'application/pdf',
+          starred: true,
+          createdAt: Date.now() - 86400000 * 3,
+          updatedAt: Date.now() - 86400000 * 3,
+          tags: ['Math', 'Calculus'],
+          contentPreview: 'LINEAR TRANSFORMATIONS & EIGENVALUES CHEATSHEET'
+        },
+        {
+          id: 'doc-3',
+          name: 'OS_Process_Scheduling_Notes.docx',
+          folderId: 'f-cs',
+          size: 980000,
+          type: 'docx',
+          mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          starred: false,
+          createdAt: Date.now() - 86400000 * 4,
+          updatedAt: Date.now() - 86400000 * 4,
+          tags: ['Operating Systems', 'Notes']
+        },
+        {
+          id: 'doc-4',
+          name: 'Quantum_Tunneling_Simulation.pptx',
+          folderId: 'f-phys',
+          size: 3450000,
+          type: 'pptx',
+          mimeType: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+          starred: false,
+          createdAt: Date.now() - 86400000 * 5,
+          updatedAt: Date.now() - 86400000 * 5,
+          tags: ['Physics']
+        },
+        {
+          id: 'doc-5',
+          name: 'Semester_Study_Schedule.xlsx',
+          folderId: null,
+          size: 430000,
+          type: 'xlsx',
+          mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          starred: true,
+          createdAt: Date.now() - 86400000 * 1,
+          updatedAt: Date.now() - 86400000 * 1,
+          tags: ['Planner']
+        },
+        {
+          id: 'doc-6',
+          name: 'Neural_Network_Architecture.png',
+          folderId: 'f-cs',
+          size: 1150000,
+          type: 'png',
+          mimeType: 'image/png',
+          starred: true,
+          createdAt: Date.now() - 86400000 * 2,
+          updatedAt: Date.now() - 86400000 * 2,
+          tags: ['AI']
+        },
+        {
+          id: 'doc-7',
+          name: 'Calculus_Formulas_QuickRef.txt',
+          folderId: 'f-calc',
+          size: 45000,
+          type: 'txt',
+          mimeType: 'text/plain',
+          starred: false,
+          createdAt: Date.now() - 86400000 * 6,
+          updatedAt: Date.now() - 86400000 * 6,
+          tags: ['Formulas']
+        }
+      ],
+      trash: [],
+      settings: {
+        userName: 'Scholar',
+        userEmail: 'scholar@studyvault.edu',
+        institution: 'Institute of Science & Technology',
+        quotaBytes: 104857600,
+        theme: 'light'
+      }
+    };
+
+    function getStore() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_SEED_DATA));
+          return JSON.parse(JSON.stringify(INITIAL_SEED_DATA));
+        }
+        return JSON.parse(raw);
+      } catch (e) {
+        return JSON.parse(JSON.stringify(INITIAL_SEED_DATA));
+      }
+    }
+
+    function saveStore(data) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      window.dispatchEvent(new Event('studyvault:data-changed'));
+      renderSettings();
+    }
+
+    function formatBytes(bytes, decimals = 1) {
+      if (!bytes || bytes === 0) return '0 B';
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return (bytes / Math.pow(k, i)).toFixed(decimals) + ' ' + sizes[i];
+    }
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.innerHTML = `<span>${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.3s';
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    function getFileTypeInfo(type) {
+      const ext = (type || '').toLowerCase().replace('.', '');
+      switch (ext) {
+        case 'pdf': return { label: 'PDF Documents', color: '#ef4444' };
+        case 'doc':
+        case 'docx': return { label: 'Word Documents', color: '#2563eb' };
+        case 'ppt':
+        case 'pptx': return { label: 'Presentations', color: '#ea580c' };
+        case 'xls':
+        case 'xlsx':
+        case 'csv': return { label: 'Spreadsheets', color: '#10b981' };
+        case 'png':
+        case 'jpg':
+        case 'jpeg':
+        case 'webp':
+        case 'svg': return { label: 'Images & Diagrams', color: '#8b5cf6' };
+        case 'txt':
+        case 'md': return { label: 'Notes & Text', color: '#64748b' };
+        default: return { label: 'Other Documents', color: '#475569' };
+      }
+    }
+
+    function renderSettings() {
+      const store = getStore();
+      const allDocs = store.documents || [];
+      const trash = store.trash || [];
+      const settings = store.settings || {};
+
+      document.getElementById('sidebarDocBadge').textContent = allDocs.length;
+      document.getElementById('sidebarTrashBadge').textContent = trash.length;
+
+      // Populate user settings
+      document.getElementById('userNameInput').value = settings.userName || 'Scholar';
+      document.getElementById('userEmailInput').value = settings.userEmail || 'scholar@studyvault.edu';
+      document.getElementById('userInstitutionInput').value = settings.institution || '';
+      document.getElementById('quotaTierSelect').value = String(settings.quotaBytes || 104857600);
+
+      // Storage Calculations
+      let totalUsedBytes = 0;
+      const catMap = {
+        'PDF Documents': { color: '#ef4444', bytes: 0, count: 0 },
+        'Word Documents': { color: '#2563eb', bytes: 0, count: 0 },
+        'Presentations': { color: '#ea580c', bytes: 0, count: 0 },
+        'Spreadsheets': { color: '#10b981', bytes: 0, count: 0 },
+        'Images & Diagrams': { color: '#8b5cf6', bytes: 0, count: 0 },
+        'Notes & Text': { color: '#64748b', bytes: 0, count: 0 },
+      };
+
+      allDocs.forEach(d => {
+        const s = d.size || 0;
+        totalUsedBytes += s;
+        const info = getFileTypeInfo(d.type);
+        if (catMap[info.label]) {
+          catMap[info.label].bytes += s;
+          catMap[info.label].count += 1;
+        } else {
+          catMap['Notes & Text'].bytes += s;
+          catMap['Notes & Text'].count += 1;
+        }
+      });
+
+      const quotaBytes = settings.quotaBytes || 104857600;
+      const pct = Math.min(100, (totalUsedBytes / quotaBytes) * 100).toFixed(1);
+
+      document.getElementById('sidebarStorageText').textContent = `${formatBytes(totalUsedBytes)} / ${formatBytes(quotaBytes)}`;
+      document.getElementById('sidebarStorageBar').style.width = `${pct}%`;
+
+      document.getElementById('mainStorageUsed').textContent = formatBytes(totalUsedBytes);
+      document.getElementById('mainStorageQuotaLabel').textContent = `of ${formatBytes(quotaBytes)} Quota (${pct}%)`;
+
+      // Stacked bar
+      const stackedMeter = document.getElementById('mainStackedMeter');
+      stackedMeter.innerHTML = '';
+      Object.keys(catMap).forEach(key => {
+        const item = catMap[key];
+        const slicePct = totalUsedBytes > 0 ? ((item.bytes / totalUsedBytes) * 100).toFixed(1) : 0;
+        if (item.bytes > 0) {
+          const div = document.createElement('div');
+          div.className = 'meter-slice';
+          div.style.width = `${slicePct}%`;
+          div.style.backgroundColor = item.color;
+          div.title = `${key}: ${formatBytes(item.bytes)} (${slicePct}%)`;
+          stackedMeter.appendChild(div);
+        }
+      });
+
+      // Categories Grid
+      const catGrid = document.getElementById('categoriesGrid');
+      catGrid.innerHTML = '';
+      Object.keys(catMap).forEach(key => {
+        const item = catMap[key];
+        const pctOfUsed = totalUsedBytes > 0 ? ((item.bytes / totalUsedBytes) * 100).toFixed(1) : 0;
+        const card = document.createElement('div');
+        card.className = 'category-box';
+        card.innerHTML = `
+          <div class="cat-box-header">
+            <span class="cat-color-dot" style="background-color: ${item.color};"></span>
+            <span>${key}</span>
+          </div>
+          <div class="cat-box-size">${formatBytes(item.bytes)}</div>
+          <div class="cat-box-stats">
+            <span>${item.count} document${item.count !== 1 ? 's' : ''}</span>
+            <span>${pctOfUsed}% of storage</span>
+          </div>
+        `;
+        catGrid.appendChild(card);
+      });
+    }
+
+    /**
+     * Download JSON Backup
+     */
+    function exportJsonBackup() {
+      const store = getStore();
+      const exportData = {
+        studyvault_version: '2.0',
+        exportedAt: new Date().toISOString(),
+        folders: store.folders || [],
+        documents: store.documents || [],
+        trash: store.trash || [],
+        settings: store.settings || {}
+      };
+
+      const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(exportData, null, 2));
+      const downloadAnchor = document.createElement('a');
+      const filename = `studyvault-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      downloadAnchor.setAttribute('href', dataStr);
+      downloadAnchor.setAttribute('download', filename);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+
+      showToast(`Backup downloaded: ${filename}`, 'success');
+    }
+
+    /**
+     * Upload JSON Backup
+     */
+    function handleBackupFileSelected(e) {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const parsed = JSON.parse(event.target.result);
+          if (!parsed.folders || !parsed.documents) {
+            showToast('Invalid backup file structure.', 'error');
+            return;
+          }
+
+          document.getElementById('confirmModalTitle').textContent = 'Restore Vault Backup';
+          document.getElementById('confirmModalBody').innerHTML = `
+            Restore library from backup file: <strong>${escapeHtml(file.name)}</strong>?<br><br>
+            Found in backup:<br>
+            &bull; <strong>${parsed.folders.length}</strong> folders<br>
+            &bull; <strong>${parsed.documents.length}</strong> documents<br><br>
+            <span style="color: var(--primary);">This will restore all items into your vault.</span>
+          `;
+
+          pendingConfirm = () => {
+            const store = getStore();
+            store.folders = parsed.folders;
+            store.documents = parsed.documents;
+            if (parsed.trash) store.trash = parsed.trash;
+            if (parsed.settings) store.settings = parsed.settings;
+            saveStore(store);
+            showToast('Library data restored successfully!', 'success');
+            closeConfirmModal();
+          };
+
+          document.getElementById('confirmSubmitBtn').onclick = pendingConfirm;
+          document.getElementById('confirmModal').classList.add('active');
+        } catch (err) {
+          showToast('Failed to parse JSON backup file.', 'error');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    /**
+     * Save Profile Settings
+     */
+    function handleSaveProfile(e) {
+      e.preventDefault();
+      const store = getStore();
+      store.settings = store.settings || {};
+      store.settings.userName = document.getElementById('userNameInput').value.trim();
+      store.settings.userEmail = document.getElementById('userEmailInput').value.trim();
+      store.settings.institution = document.getElementById('userInstitutionInput').value.trim();
+      store.settings.quotaBytes = parseInt(document.getElementById('quotaTierSelect').value, 10);
+
+      saveStore(store);
+      showToast('Profile and settings updated!', 'success');
+    }
+
+    /**
+     * Reset to Sample Data
+     */
+    function openResetSampleModal() {
+      document.getElementById('confirmModalTitle').textContent = 'Reset to Sample Vault';
+      document.getElementById('confirmModalBody').innerHTML = `
+        Reset vault to initial academic sample subjects (Algorithms, Calculus, Physics, Quantum Mechanics) with certified lecture notes and diagrams?<br><br>
+        Current custom files will be refreshed.
+      `;
+
+      pendingConfirm = () => {
+        localStorage.removeItem(STORAGE_KEY);
+        // Force reload initial seed
+        window.location.reload();
+      };
+
+      document.getElementById('confirmSubmitBtn').onclick = pendingConfirm;
+      document.getElementById('confirmModal').classList.add('active');
+    }
+
+    function openClearDataModal() {
+      document.getElementById('confirmModalTitle').textContent = 'Wipe Entire Vault';
+      document.getElementById('confirmModalBody').innerHTML = `
+        <span style="color: var(--danger); font-weight: bold;">Warning:</span> This will permanently erase all folders, documents, and trash from this device.
+      `;
+
+      pendingConfirm = () => {
+        const emptyStore = {
+          folders: [],
+          documents: [],
+          trash: [],
+          settings: {
+            userName: 'Scholar',
+            userEmail: 'scholar@studyvault.edu',
+            institution: '',
+            quotaBytes: 104857600,
+            theme: 'light'
+          }
+        };
+        saveStore(emptyStore);
+        showToast('All vault data has been cleared', 'info');
+        closeConfirmModal();
+      };
+
+      document.getElementById('confirmSubmitBtn').onclick = pendingConfirm;
+      document.getElementById('confirmModal').classList.add('active');
+    }
+
+    function closeConfirmModal() {
+      document.getElementById('confirmModal').classList.remove('active');
+      pendingConfirm = null;
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Mobile
+    document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+      document.getElementById('sidebar').classList.toggle('open');
+    });
+
+    window.addEventListener('storage', () => renderSettings());
+    window.addEventListener('studyvault:data-changed', () => renderSettings());
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderSettings();
+    });
+  </script>
+</body>
+</html>

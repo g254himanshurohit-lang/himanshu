@@ -1,0 +1,2240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Library - StudyVault | Personal Study Notes & Document Storage</title>
+  <meta name="description" content="StudyVault Library - Unlimited hierarchical subject, chapter, and unit organization with interactive previews and bulk actions.">
+  <meta property="og:title" content="My Library - StudyVault">
+  <meta property="og:description" content="Organize your study notes, textbooks, and problem sets.">
+  <meta property="og:type" content="website">
+  <link rel="icon" type="image/svg+xml" href="/assets/studyvault-logo.svg">
+  <style>
+    /* ---------------- StudyVault Design System ---------------- */
+    :root {
+      --bg-page: #f8fafc;
+      --bg-surface: #ffffff;
+      --border-color: #e2e8f0;
+      --border-subtle: #f1f5f9;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --text-light: #94a3b8;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-light: #eff6ff;
+      --sidebar-bg: #0b1329;
+      --sidebar-hover: #1e293b;
+      --sidebar-border: #1e293b;
+      --sidebar-text: #94a3b8;
+      --sidebar-text-active: #ffffff;
+      --danger: #ef4444;
+      --danger-light: #fef2f2;
+      --success: #10b981;
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+      --radius: 12px;
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--font-family);
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      display: flex;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    button, input, select { font-family: inherit; }
+
+    /* ---------------- Sidebar ---------------- */
+    .sidebar {
+      width: 270px;
+      background-color: var(--sidebar-bg);
+      color: var(--sidebar-text);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      border-right: 1px solid var(--sidebar-border);
+      z-index: 40;
+      transition: transform 0.3s ease;
+    }
+    .brand-section {
+      padding: 24px 20px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    }
+    .brand-logo-img { height: 38px; width: auto; object-fit: contain; }
+    .brand-text-fallback { display: flex; flex-direction: column; }
+    .brand-title { font-size: 18px; font-weight: 800; color: #ffffff; }
+    .brand-title span { color: #60a5fa; }
+    .brand-tagline { font-size: 10px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.8px; }
+
+    .nav-menu {
+      flex: 1;
+      padding: 20px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      overflow-y: auto;
+    }
+    .nav-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #64748b;
+      padding: 12px 12px 6px;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      color: var(--sidebar-text);
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.15s ease;
+      cursor: pointer;
+    }
+    .nav-item:hover { background-color: var(--sidebar-hover); color: #ffffff; }
+    .nav-item.active {
+      background: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%);
+      color: #ffffff;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    }
+    .nav-badge {
+      margin-left: auto;
+      background-color: rgba(255, 255, 255, 0.12);
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 999px;
+    }
+
+    .sidebar-bottom {
+      padding: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      background-color: rgba(0, 0, 0, 0.2);
+    }
+    .storage-mini { display: flex; flex-direction: column; gap: 8px; }
+    .storage-header { display: flex; justify-content: space-between; font-size: 12px; color: #cbd5e1; }
+    .storage-progress {
+      width: 100%;
+      height: 6px;
+      background-color: rgba(255, 255, 255, 0.15);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .storage-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #3b82f6, #60a5fa);
+      border-radius: 999px;
+      transition: width 0.3s ease;
+    }
+
+    /* ---------------- Main Layout ---------------- */
+    .main-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .top-navbar {
+      height: 70px;
+      background-color: var(--bg-surface);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex: 1;
+      max-width: 520px;
+    }
+    .mobile-menu-btn {
+      display: none;
+      background: none;
+      border: none;
+      padding: 8px;
+      cursor: pointer;
+      color: var(--text-main);
+    }
+    .search-box-container {
+      position: relative;
+      width: 100%;
+    }
+    .search-input {
+      width: 100%;
+      height: 42px;
+      background-color: var(--bg-page);
+      border: 1px solid var(--border-color);
+      border-radius: 999px;
+      padding: 0 16px 0 42px;
+      font-size: 14px;
+      color: var(--text-main);
+      outline: none;
+      transition: all 0.2s;
+    }
+    .search-input:focus {
+      background-color: #ffffff;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+    .search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-light);
+      pointer-events: none;
+    }
+    .search-results-dropdown {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      right: 0;
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      box-shadow: var(--shadow-lg);
+      max-height: 400px;
+      overflow-y: auto;
+      z-index: 100;
+      display: none;
+    }
+    .search-results-dropdown.active { display: block; }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 18px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s ease;
+    }
+    .btn-primary { background-color: var(--primary); color: #ffffff; }
+    .btn-primary:hover { background-color: var(--primary-hover); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25); }
+    .btn-secondary { background-color: #ffffff; border: 1px solid var(--border-color); color: var(--text-main); }
+    .btn-secondary:hover { background-color: var(--bg-page); border-color: #cbd5e1; }
+    .btn-danger { background-color: var(--danger-light); color: var(--danger); border: 1px solid #fecaca; }
+    .btn-danger:hover { background-color: #fee2e2; }
+
+    /* ---------------- Library Page Body ---------------- */
+    .library-content {
+      padding: 32px;
+      max-width: 1440px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* Breadcrumbs Bar */
+    .library-header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .breadcrumb-trail {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+      overflow-x: auto;
+      padding: 4px 0;
+    }
+    .breadcrumb-item {
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-muted);
+      transition: color 0.12s;
+    }
+    .breadcrumb-item:hover { color: var(--primary); }
+    .breadcrumb-item.active { color: var(--text-main); font-weight: 700; cursor: default; }
+    .breadcrumb-sep { color: var(--text-light); }
+
+    /* Filter & Controls Toolbar */
+    .library-controls-bar {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      box-shadow: var(--shadow-sm);
+    }
+    .filter-pills-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      overflow-x: auto;
+      max-width: 100%;
+    }
+    .filter-pill {
+      background: var(--bg-page);
+      border: 1px solid var(--border-color);
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.12s;
+    }
+    .filter-pill:hover { border-color: var(--primary); color: var(--primary); }
+    .filter-pill.active {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+    }
+
+    .view-toggles-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .view-btn {
+      padding: 7px 10px;
+      background: var(--bg-page);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      cursor: pointer;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .view-btn.active {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+    }
+    .sort-select {
+      padding: 7px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-size: 12px;
+      color: var(--text-main);
+      background: #ffffff;
+      outline: none;
+    }
+
+    /* Floating Bulk Action Bar */
+    .bulk-action-bar {
+      position: sticky;
+      top: 86px;
+      z-index: 25;
+      background: #0f172a;
+      color: #ffffff;
+      padding: 12px 20px;
+      border-radius: 12px;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow-lg);
+      animation: fadeInDown 0.2s ease;
+    }
+    .bulk-action-bar.visible { display: flex; }
+    @keyframes fadeInDown {
+      from { transform: translateY(-10px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .bulk-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .bulk-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .bulk-btn {
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #ffffff;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .bulk-btn:hover { background: rgba(255, 255, 255, 0.28); }
+    .bulk-btn.danger { background: rgba(239, 68, 68, 0.3); border-color: rgba(239, 68, 68, 0.5); }
+    .bulk-btn.danger:hover { background: rgba(239, 68, 68, 0.5); }
+
+    /* Section Subheadings */
+    .library-section-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin: 24px 0 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Folders Grid */
+    .folders-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .folder-item-card {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      position: relative;
+    }
+    .folder-item-card:hover {
+      border-color: var(--primary);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+    .folder-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .folder-icon-box {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .folder-options-btn {
+      background: none;
+      border: none;
+      padding: 6px;
+      border-radius: 6px;
+      cursor: pointer;
+      color: var(--text-light);
+    }
+    .folder-options-btn:hover { background: var(--bg-page); color: var(--text-main); }
+    .folder-title-line {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-main);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .folder-meta-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* Documents Grid & List Views */
+    .docs-grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 16px;
+    }
+    .doc-grid-card {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      position: relative;
+    }
+    .doc-grid-card:hover {
+      border-color: var(--primary);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+    .doc-grid-card.selected {
+      border-color: var(--primary);
+      background-color: var(--primary-light);
+    }
+    .doc-card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+    }
+    .doc-card-select-check {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+    .doc-format-badge {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 12px;
+      color: #ffffff;
+    }
+    .doc-grid-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-main);
+      word-break: break-word;
+      line-height: 1.3;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .doc-grid-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: var(--text-light);
+      margin-top: auto;
+      border-top: 1px solid var(--border-subtle);
+      padding-top: 10px;
+    }
+
+    /* List View Table */
+    .docs-list-container {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+    .list-header-row {
+      display: grid;
+      grid-template-columns: 36px 3fr 1.5fr 1fr 1fr 80px;
+      padding: 12px 18px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      background-color: var(--bg-page);
+      border-bottom: 1px solid var(--border-color);
+      align-items: center;
+    }
+    .list-item-row {
+      display: grid;
+      grid-template-columns: 36px 3fr 1.5fr 1fr 1fr 80px;
+      padding: 12px 18px;
+      align-items: center;
+      border-bottom: 1px solid var(--border-subtle);
+      cursor: pointer;
+      transition: background 0.12s;
+    }
+    .list-item-row:last-child { border-bottom: none; }
+    .list-item-row:hover { background-color: var(--primary-light); }
+    .list-item-row.selected { background-color: #dbeafe; }
+
+    /* Modals & Dropzone */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+    .modal-overlay.active { opacity: 1; pointer-events: auto; }
+    .modal-card {
+      background: #ffffff;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 520px;
+      padding: 28px;
+      box-shadow: var(--shadow-lg);
+      transform: translateY(12px) scale(0.98);
+      transition: transform 0.2s ease;
+    }
+    .modal-overlay.active .modal-card { transform: translateY(0) scale(1); }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .modal-title { font-size: 18px; font-weight: 800; color: var(--text-main); }
+    .modal-close { background: none; border: none; font-size: 20px; color: var(--text-muted); cursor: pointer; }
+    .form-group { margin-bottom: 18px; display: flex; flex-direction: column; gap: 6px; }
+    .form-label { font-size: 13px; font-weight: 600; color: var(--text-main); }
+    .form-control {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+    }
+    .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12); }
+    .color-swatches { display: flex; gap: 10px; margin-top: 4px; }
+    .color-swatch {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: transform 0.1s;
+    }
+    .color-swatch.selected { border-color: #0f172a; transform: scale(1.15); }
+    .modal-footer { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
+
+    .dropzone {
+      border: 2px dashed var(--border-color);
+      border-radius: 12px;
+      padding: 32px 20px;
+      text-align: center;
+      cursor: pointer;
+      background: var(--bg-page);
+      transition: all 0.2s;
+    }
+    .dropzone.dragover { border-color: var(--primary); background-color: var(--primary-light); }
+
+    /* Viewer Modal */
+    .viewer-modal-card {
+      background: #ffffff;
+      border-radius: 16px;
+      width: 90vw;
+      max-width: 960px;
+      height: 85vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: var(--shadow-lg);
+    }
+    .viewer-header {
+      padding: 14px 20px;
+      background: #0f172a;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .viewer-title { font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+    .viewer-toolbar { display: flex; align-items: center; gap: 8px; }
+    .viewer-btn {
+      background: rgba(255, 255, 255, 0.12);
+      border: none;
+      color: #ffffff;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .viewer-btn:hover { background: rgba(255, 255, 255, 0.22); }
+    .viewer-body {
+      flex: 1;
+      background: #525659;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: auto;
+      padding: 24px;
+    }
+    .viewer-page-surface {
+      background: #ffffff;
+      color: #0f172a;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+      border-radius: 4px;
+      min-height: 520px;
+      width: 100%;
+      max-width: 700px;
+      padding: 40px;
+      font-family: Georgia, serif;
+      line-height: 1.6;
+      transition: transform 0.2s ease;
+      transform-origin: center center;
+    }
+
+    /* Toast */
+    .toast-container { position: fixed; bottom: 24px; right: 24px; display: flex; flex-direction: column; gap: 10px; z-index: 2000; }
+    .toast {
+      background: #0f172a;
+      color: #ffffff;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 13px;
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .toast.success { border-left: 4px solid var(--success); }
+    .toast.error { border-left: 4px solid var(--danger); }
+
+    /* Dropdown Menus */
+    .action-dropdown-menu {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      box-shadow: var(--shadow-md);
+      display: none;
+      flex-direction: column;
+      min-width: 140px;
+      z-index: 60;
+    }
+    .action-dropdown-menu.active { display: flex; }
+    .action-dropdown-item {
+      padding: 8px 14px;
+      font-size: 12px;
+      color: var(--text-main);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .action-dropdown-item:hover { background-color: var(--primary-light); }
+    .action-dropdown-item.danger { color: var(--danger); }
+
+    @media (max-width: 768px) {
+      .sidebar { position: fixed; left: 0; top: 0; bottom: 0; transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
+      .mobile-menu-btn { display: flex; }
+      .top-navbar { padding: 0 16px; }
+      .library-content { padding: 18px 14px; }
+      .list-header-row { display: none; }
+      .list-item-row { grid-template-columns: 30px 1fr 60px; }
+      .list-item-row > div:nth-child(3), .list-item-row > div:nth-child(4), .list-item-row > div:nth-child(5) { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand-section">
+      <img src="/assets/studyvault-logo.svg" alt="StudyVault Logo" class="brand-logo-img">
+    </div>
+
+    <nav class="nav-menu">
+      <div class="nav-label">Main Vault</div>
+      <a href="index.html" class="nav-item">
+        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg></span>
+        Dashboard
+      </a>
+      <a href="library.html" class="nav-item active">
+        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg></span>
+        My Library
+        <span class="nav-badge" id="sidebarDocBadge">0</span>
+      </a>
+      <a href="trash.html" class="nav-item">
+        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></span>
+        Trash
+        <span class="nav-badge" id="sidebarTrashBadge">0</span>
+      </a>
+      <a href="settings.html" class="nav-item">
+        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></span>
+        Settings & Backup
+      </a>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <div class="storage-mini">
+        <div class="storage-header">
+          <span>Storage Quota</span>
+          <span id="sidebarStorageText">0 MB / 100 MB</span>
+        </div>
+        <div class="storage-progress">
+          <div class="storage-bar-fill" id="sidebarStorageBar" style="width: 0%;"></div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Container -->
+  <div class="main-wrapper">
+    <!-- Navbar -->
+    <header class="top-navbar">
+      <div class="nav-left">
+        <button class="mobile-menu-btn" id="mobileMenuBtn">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </button>
+
+        <div class="search-box-container">
+          <span class="search-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          </span>
+          <input type="text" class="search-input" id="librarySearchInput" placeholder="Filter current folder by name or tag..." autocomplete="off">
+          <div class="search-results-dropdown" id="searchResultsDropdown"></div>
+        </div>
+      </div>
+
+      <div class="nav-right">
+        <button class="btn btn-secondary" onclick="openUploadModal()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+          Upload
+        </button>
+        <button class="btn btn-primary" onclick="openNewFolderModal()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          New Folder
+        </button>
+      </div>
+    </header>
+
+    <!-- Content Area -->
+    <main class="library-content">
+      <!-- Breadcrumb Navigation & Parent Header -->
+      <div class="library-header-bar">
+        <div class="breadcrumb-trail" id="breadcrumbTrail">
+          <!-- Dynamically filled: All Notes > CS > Algo > Ch4 -->
+        </div>
+
+        <div style="display:flex; gap: 8px;">
+          <button class="btn btn-secondary" id="upFolderBtn" onclick="navigateUpOneFolder()" style="display: none; padding: 7px 14px; font-size: 12px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            Up Level
+          </button>
+          <button class="btn btn-secondary" id="folderActionBtn" onclick="toggleCurrentFolderMenu()" style="display: none; padding: 7px 14px; font-size: 12px;">
+            Folder Options ▾
+          </button>
+          <div class="action-dropdown-menu" id="currentFolderDropdown" style="right: 32px; top: 125px;">
+            <div class="action-dropdown-item" onclick="openRenameFolderModal(currentFolderId)">Rename Folder</div>
+            <div class="action-dropdown-item" onclick="openMoveFolderModal(currentFolderId)">Move Folder</div>
+            <div class="action-dropdown-item danger" onclick="deleteFolderToTrash(currentFolderId)">Delete to Trash</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Controls & Filter Bar -->
+      <div class="library-controls-bar">
+        <!-- Filter Pills -->
+        <div class="filter-pills-group" id="filterPillsGroup">
+          <button class="filter-pill active" onclick="setFilter('all')">All Files</button>
+          <button class="filter-pill" onclick="setFilter('pdf')">PDFs</button>
+          <button class="filter-pill" onclick="setFilter('doc')">Docs</button>
+          <button class="filter-pill" onclick="setFilter('ppt')">Slides</button>
+          <button class="filter-pill" onclick="setFilter('xls')">Sheets</button>
+          <button class="filter-pill" onclick="setFilter('image')">Images</button>
+          <button class="filter-pill" onclick="setFilter('text')">Notes</button>
+          <button class="filter-pill" onclick="setFilter('starred')">★ Starred</button>
+        </div>
+
+        <!-- View & Sort Controls -->
+        <div class="view-toggles-group">
+          <select class="sort-select" id="sortSelect" onchange="handleSortChange(this.value)">
+            <option value="date-desc">Newest First</option>
+            <option value="date-asc">Oldest First</option>
+            <option value="name-asc">Name (A-Z)</option>
+            <option value="name-desc">Name (Z-A)</option>
+            <option value="size-desc">Size (Largest)</option>
+            <option value="size-asc">Size (Smallest)</option>
+          </select>
+
+          <button class="view-btn active" id="viewGridBtn" onclick="setViewMode('grid')" title="Grid View">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+          </button>
+          <button class="view-btn" id="viewListBtn" onclick="setViewMode('list')" title="List View">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Floating Bulk Action Toolbar -->
+      <div class="bulk-action-bar" id="bulkActionBar">
+        <div class="bulk-left">
+          <span id="bulkSelectedCount">0 items selected</span>
+          <button class="bulk-btn" onclick="deselectAll()">Deselect All</button>
+        </div>
+        <div class="bulk-right">
+          <button class="bulk-btn" onclick="bulkStarSelected()">★ Star</button>
+          <button class="bulk-btn" onclick="openBulkMoveModal()">Move to...</button>
+          <button class="bulk-btn" onclick="bulkDownloadSelected()">Download</button>
+          <button class="bulk-btn danger" onclick="bulkDeleteSelected()">Delete to Trash</button>
+        </div>
+      </div>
+
+      <!-- Folders Section -->
+      <div id="subfoldersSection">
+        <div class="library-section-title">
+          <span>📁 Folders & Subjects</span>
+          <span id="subfolderCountBadge" style="font-size: 12px; color: var(--text-light);">(0)</span>
+        </div>
+        <div class="folders-container" id="foldersContainer"></div>
+      </div>
+
+      <!-- Documents Section -->
+      <div style="margin-top: 24px;">
+        <div class="library-section-title" style="display:flex; justify-content:space-between;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span>📄 Documents & Notes</span>
+            <span id="docCountBadge" style="font-size: 12px; color: var(--text-light);">(0)</span>
+          </div>
+          <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); display:flex; align-items:center; gap:6px; cursor:pointer;">
+            <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this.checked)" style="accent-color: var(--primary);">
+            Select All
+          </label>
+        </div>
+
+        <!-- Rendered Container for Grid or List -->
+        <div id="documentsContainer"></div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Create Folder Modal -->
+  <div class="modal-overlay" id="folderModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title" id="folderModalTitle">Create Folder</h3>
+        <button class="modal-close" onclick="closeFolderModal()">&times;</button>
+      </div>
+      <form id="createFolderForm" onsubmit="handleSaveFolder(event)">
+        <input type="hidden" id="editingFolderId" value="">
+        <div class="form-group">
+          <label class="form-label" for="folderNameInput">Folder Name</label>
+          <input type="text" id="folderNameInput" class="form-control" placeholder="e.g. Chapter 5 - Optics, Unit 1" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="folderParentSelect">Parent Location</label>
+          <select id="folderParentSelect" class="form-control">
+            <option value="">Vault Root</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="folderCategorySelect">Classification</label>
+          <select id="folderCategorySelect" class="form-control">
+            <option value="subject">Subject / Course</option>
+            <option value="chapter">Chapter / Module</option>
+            <option value="unit">Unit / Topic</option>
+            <option value="general">General</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Color Label</label>
+          <div class="color-swatches" id="colorSwatchesContainer"></div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeFolderModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="saveFolderSubmitBtn">Save Folder</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Move Folder / Documents Modal -->
+  <div class="modal-overlay" id="moveModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title" id="moveModalTitle">Move Item</h3>
+        <button class="modal-close" onclick="closeMoveModal()">&times;</button>
+      </div>
+      <form id="moveItemForm" onsubmit="handleExecuteMove(event)">
+        <input type="hidden" id="movingItemId" value="">
+        <input type="hidden" id="movingItemType" value="">
+        <div class="form-group">
+          <label class="form-label">Select Destination Folder</label>
+          <select id="moveDestinationSelect" class="form-control" required>
+            <option value="">Vault Root</option>
+          </select>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeMoveModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Move Here</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Rename Document Modal -->
+  <div class="modal-overlay" id="renameDocModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">Rename Document</h3>
+        <button class="modal-close" onclick="closeRenameDocModal()">&times;</button>
+      </div>
+      <form id="renameDocForm" onsubmit="handleExecuteRenameDoc(event)">
+        <input type="hidden" id="renamingDocId" value="">
+        <div class="form-group">
+          <label class="form-label" for="renameDocInput">Document Name</label>
+          <input type="text" id="renameDocInput" class="form-control" required>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeRenameDocModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Rename</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Upload Modal -->
+  <div class="modal-overlay" id="uploadModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">Upload Documents to Library</h3>
+        <button class="modal-close" onclick="closeUploadModal()">&times;</button>
+      </div>
+      <form id="uploadDocForm" onsubmit="handleUploadSubmit(event)">
+        <div class="form-group">
+          <label class="form-label" for="uploadTargetFolderSelect">Target Folder</label>
+          <select id="uploadTargetFolderSelect" class="form-control"></select>
+        </div>
+
+        <div class="dropzone" id="uploadDropzone" onclick="document.getElementById('fileInputElement').click()">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" style="margin: 0 auto 10px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+          <p style="font-weight: 700; font-size: 14px; margin-bottom: 4px;">Drag & drop files here, or browse</p>
+          <p style="font-size: 12px; color: var(--text-light);">Supports PDF, DOCX, PPTX, XLSX, PNG, JPG, TXT</p>
+          <input type="file" id="fileInputElement" multiple style="display: none;" onchange="handleFileSelect(event)">
+        </div>
+
+        <div id="selectedFilesPreview" style="margin-top: 14px; max-height: 120px; overflow-y: auto; font-size: 12px;"></div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeUploadModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Start Upload</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Document Viewer Modal -->
+  <div class="modal-overlay" id="docViewerModal">
+    <div class="viewer-modal-card">
+      <div class="viewer-header">
+        <div class="viewer-title" id="viewerDocTitle">
+          <span>Document Title</span>
+        </div>
+        <div class="viewer-toolbar">
+          <button class="viewer-btn" onclick="adjustViewerZoom(-0.1)" title="Zoom Out">-</button>
+          <span id="viewerZoomLabel" style="font-size: 12px; font-weight: 600; min-width: 44px; text-align: center;">100%</span>
+          <button class="viewer-btn" onclick="adjustViewerZoom(0.1)" title="Zoom In">+</button>
+          <button class="viewer-btn" onclick="rotateViewerDoc()">Rotate</button>
+          <button class="viewer-btn" onclick="downloadCurrentViewerDoc()">Download</button>
+          <button class="viewer-btn" onclick="closeViewerModal()" style="background: rgba(239, 68, 68, 0.4); margin-left: 8px;">&times; Close</button>
+        </div>
+      </div>
+      <div class="viewer-body" id="viewerContentArea"></div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script>
+    const STORAGE_KEY = 'STUDYVAULT_DATA_V2';
+
+    const COLOR_PALETTE = [
+      { name: 'Indigo', hex: '#4f46e5' },
+      { name: 'Emerald', hex: '#059669' },
+      { name: 'Amber', hex: '#d97706' },
+      { name: 'Rose', hex: '#e11d48' },
+      { name: 'Purple', hex: '#7c3aed' },
+      { name: 'Sky', hex: '#0284c7' },
+      { name: 'Cyan', hex: '#0891b2' },
+      { name: 'Slate', hex: '#475569' },
+    ];
+
+    let currentFolderId = null;
+    let selectedFolderColor = COLOR_PALETTE[0].hex;
+    let activeFilter = 'all';
+    let activeSort = 'date-desc';
+    let viewMode = 'grid'; // 'grid' | 'list'
+    let selectedDocIds = new Set();
+    let stagedUploadFiles = [];
+    let currentViewingDoc = null;
+    let viewerZoom = 1.0;
+    let viewerRotation = 0;
+
+    const INITIAL_SEED_DATA = {
+      folders: [
+        { id: 'f-cs', name: 'Computer Science', parentId: null, category: 'subject', color: '#4f46e5', createdAt: Date.now() - 86400000 * 10, updatedAt: Date.now() },
+        { id: 'f-algo', name: 'Algorithms & Data Structures', parentId: 'f-cs', category: 'subject', color: '#0284c7', createdAt: Date.now() - 86400000 * 8, updatedAt: Date.now() },
+        { id: 'f-ch4', name: 'Chapter 4 - Graph Algorithms', parentId: 'f-algo', category: 'chapter', color: '#0891b2', createdAt: Date.now() - 86400000 * 5, updatedAt: Date.now() },
+        { id: 'f-unit2', name: 'Unit 2 - Dijkstra & Shortest Path', parentId: 'f-ch4', category: 'unit', color: '#3b82f6', createdAt: Date.now() - 86400000 * 3, updatedAt: Date.now() },
+        { id: 'f-math', name: 'Applied Mathematics', parentId: null, category: 'subject', color: '#059669', createdAt: Date.now() - 86400000 * 9, updatedAt: Date.now() },
+        { id: 'f-calc', name: 'Multivariable Calculus', parentId: 'f-math', category: 'chapter', color: '#10b981', createdAt: Date.now() - 86400000 * 4, updatedAt: Date.now() },
+        { id: 'f-phys', name: 'Physics & Engineering', parentId: null, category: 'subject', color: '#d97706', createdAt: Date.now() - 86400000 * 7, updatedAt: Date.now() },
+      ],
+      documents: [
+        {
+          id: 'doc-1',
+          name: 'Graph_Algorithms_Dijkstra_Proof.pdf',
+          folderId: 'f-unit2',
+          size: 2450000,
+          type: 'pdf',
+          mimeType: 'application/pdf',
+          starred: true,
+          createdAt: Date.now() - 86400000 * 2,
+          updatedAt: Date.now() - 86400000 * 2,
+          tags: ['Algorithms', 'Exam Prep'],
+          contentPreview: 'DIJKSTRA ALGORITHM FORMAL PROOF & COMPLEXITY ANALYSIS\n\nTheorem: Dijkstra algorithm finds the shortest path from a single source vertex to all other vertices in a weighted graph with non-negative edge weights in O((V + E) log V) time.\n\nInvariant: For each vertex u in S, dist[u] is the exact shortest path from source s to u.\nBase Case: At step 0, S = {s}, dist[s] = 0, which holds true.\nInductive Step: Suppose the invariant holds for |S| = k...'
+        },
+        {
+          id: 'doc-2',
+          name: 'Linear_Transformations_Summary.pdf',
+          folderId: 'f-calc',
+          size: 1820000,
+          type: 'pdf',
+          mimeType: 'application/pdf',
+          starred: true,
+          createdAt: Date.now() - 86400000 * 3,
+          updatedAt: Date.now() - 86400000 * 3,
+          tags: ['Math', 'Calculus'],
+          contentPreview: 'LINEAR TRANSFORMATIONS & EIGENVALUES CHEATSHEET\n\nDefinition: A mapping T: V -> W is a linear transformation if:\n1. T(u + v) = T(u) + T(v) for all u, v in V\n2. T(c * u) = c * T(u) for any scalar c\n\nCharacteristic Equation: det(A - lambda * I) = 0\nDiagonalization: A = P * D * P^(-1) if and only if A has n linearly independent eigenvectors.'
+        },
+        {
+          id: 'doc-3',
+          name: 'OS_Process_Scheduling_Notes.docx',
+          folderId: 'f-cs',
+          size: 980000,
+          type: 'docx',
+          mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          starred: false,
+          createdAt: Date.now() - 86400000 * 4,
+          updatedAt: Date.now() - 86400000 * 4,
+          tags: ['Operating Systems', 'Lecture Notes'],
+          contentPreview: 'OPERATING SYSTEMS - CPU SCHEDULING ALGORITHMS\n\n1. First-Come, First-Served (FCFS)\n- Non-preemptive scheduling.\n- Convoy effect: short processes wait for long processes.\n\n2. Shortest Job First (SJF)\n- Optimal average waiting time.\n- Difficulty: knowing the length of the next CPU burst in advance.\n\n3. Round Robin (RR)\n- Time quantum q (typically 10-100 ms).'
+        },
+        {
+          id: 'doc-4',
+          name: 'Quantum_Tunneling_Simulation.pptx',
+          folderId: 'f-phys',
+          size: 3450000,
+          type: 'pptx',
+          mimeType: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+          starred: false,
+          createdAt: Date.now() - 86400000 * 5,
+          updatedAt: Date.now() - 86400000 * 5,
+          tags: ['Physics', 'Presentation'],
+          contentPreview: 'Slide 1: Quantum Mechanics - Potential Barrier & Tunneling\nSlide 2: Schrödinger Time-Independent Equation\nSlide 3: Transmission Probability T = exp(-2 * K * L)\nSlide 4: Scanning Tunneling Microscopy (STM) Applications.'
+        },
+        {
+          id: 'doc-5',
+          name: 'Semester_Study_Schedule.xlsx',
+          folderId: null,
+          size: 430000,
+          type: 'xlsx',
+          mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          starred: true,
+          createdAt: Date.now() - 86400000 * 1,
+          updatedAt: Date.now() - 86400000 * 1,
+          tags: ['Planner'],
+          contentPreview: 'WEEKLY STUDY PLANNER\n\nMonday: 09:00 - 11:00 Algorithms, 14:00 - 16:00 Multivariable Calculus\nTuesday: 10:00 - 12:00 Physics Problem Set 4\nWednesday: 09:00 - 12:00 Research Paper Review & Lab work\nThursday: 13:00 - 16:00 Midterm Mock Exams'
+        },
+        {
+          id: 'doc-6',
+          name: 'Neural_Network_Architecture.png',
+          folderId: 'f-cs',
+          size: 1150000,
+          type: 'png',
+          mimeType: 'image/png',
+          starred: true,
+          createdAt: Date.now() - 86400000 * 2,
+          updatedAt: Date.now() - 86400000 * 2,
+          tags: ['AI', 'Diagram'],
+          contentPreview: 'IMAGE_DIAGRAM: Deep Feedforward Neural Network with 3 Hidden Layers, ReLU Activations, and Softmax Output.'
+        },
+        {
+          id: 'doc-7',
+          name: 'Calculus_Formulas_QuickRef.txt',
+          folderId: 'f-calc',
+          size: 45000,
+          type: 'txt',
+          mimeType: 'text/plain',
+          starred: false,
+          createdAt: Date.now() - 86400000 * 6,
+          updatedAt: Date.now() - 86400000 * 6,
+          tags: ['Formulas'],
+          contentPreview: 'CALCULUS QUICK FORMULAS\n\nd/dx [sin(x)] = cos(x)\nd/dx [cos(x)] = -sin(x)\nd/dx [e^x] = e^x\nd/dx [ln(x)] = 1/x\n\nGradient: grad(f) = [df/dx, df/dy, df/dz]\nDivergence: div(F) = dF1/dx + dF2/dy + dF3/dz\nCurl: curl(F) = del x F'
+        }
+      ],
+      trash: [],
+      settings: {
+        userName: 'Scholar',
+        userEmail: 'scholar@studyvault.edu',
+        institution: 'Institute of Science & Technology',
+        quotaBytes: 104857600,
+        theme: 'light'
+      }
+    };
+
+    function getStore() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_SEED_DATA));
+          return JSON.parse(JSON.stringify(INITIAL_SEED_DATA));
+        }
+        return JSON.parse(raw);
+      } catch (e) {
+        return JSON.parse(JSON.stringify(INITIAL_SEED_DATA));
+      }
+    }
+
+    function saveStore(data) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      window.dispatchEvent(new Event('studyvault:data-changed'));
+      renderLibrary();
+    }
+
+    function formatBytes(bytes, decimals = 1) {
+      if (!bytes || bytes === 0) return '0 B';
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return (bytes / Math.pow(k, i)).toFixed(decimals) + ' ' + sizes[i];
+    }
+
+    function getFileTypeInfo(type) {
+      const ext = (type || '').toLowerCase().replace('.', '');
+      switch (ext) {
+        case 'pdf': return { label: 'PDF', bg: '#ef4444', icon: '📄', category: 'pdf' };
+        case 'doc':
+        case 'docx': return { label: 'DOC', bg: '#2563eb', icon: '📝', category: 'doc' };
+        case 'ppt':
+        case 'pptx': return { label: 'PPT', bg: '#ea580c', icon: '📽️', category: 'ppt' };
+        case 'xls':
+        case 'xlsx':
+        case 'csv': return { label: 'XLS', bg: '#10b981', icon: '📊', category: 'xls' };
+        case 'png':
+        case 'jpg':
+        case 'jpeg':
+        case 'webp':
+        case 'svg': return { label: 'IMG', bg: '#8b5cf6', icon: '🖼️', category: 'image' };
+        case 'txt':
+        case 'md': return { label: 'TXT', bg: '#64748b', icon: '📋', category: 'text' };
+        default: return { label: ext.toUpperCase().slice(0, 3) || 'FILE', bg: '#64748b', icon: '📁', category: 'other' };
+      }
+    }
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.innerHTML = `<span>${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.3s';
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    /**
+     * Parse folder from URL parameter ?folder=id
+     */
+    function initFolderFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      const fid = params.get('folder');
+      currentFolderId = fid || null;
+    }
+
+    function setFolder(folderId) {
+      currentFolderId = folderId;
+      selectedDocIds.clear();
+      updateBulkBar();
+      const url = new URL(window.location);
+      if (folderId) url.searchParams.set('folder', folderId);
+      else url.searchParams.delete('folder');
+      window.history.pushState({}, '', url);
+      renderLibrary();
+    }
+
+    /**
+     * Breadcrumbs
+     */
+    function renderBreadcrumbs() {
+      const store = getStore();
+      const folders = store.folders || [];
+      const trail = [{ id: null, name: 'All Notes' }];
+
+      if (currentFolderId) {
+        const folderMap = new Map();
+        folders.forEach(f => folderMap.set(f.id, f));
+
+        const path = [];
+        let curr = folderMap.get(currentFolderId);
+        const visited = new Set();
+        while (curr && !visited.has(curr.id)) {
+          visited.add(curr.id);
+          path.unshift(curr);
+          if (!curr.parentId) break;
+          curr = folderMap.get(curr.parentId);
+        }
+        path.forEach(f => trail.push({ id: f.id, name: f.name }));
+      }
+
+      const container = document.getElementById('breadcrumbTrail');
+      container.innerHTML = '';
+      trail.forEach((item, idx) => {
+        const isLast = idx === trail.length - 1;
+        const span = document.createElement('span');
+        span.className = `breadcrumb-item ${isLast ? 'active' : ''}`;
+        span.textContent = item.name;
+        if (!isLast) {
+          span.onclick = () => setFolder(item.id);
+        }
+        container.appendChild(span);
+
+        if (!isLast) {
+          const sep = document.createElement('span');
+          sep.className = 'breadcrumb-sep';
+          sep.textContent = '>';
+          container.appendChild(sep);
+        }
+      });
+
+      // Up button
+      const upBtn = document.getElementById('upFolderBtn');
+      const folderActionBtn = document.getElementById('folderActionBtn');
+      if (currentFolderId) {
+        upBtn.style.display = 'inline-flex';
+        folderActionBtn.style.display = 'inline-flex';
+      } else {
+        upBtn.style.display = 'none';
+        folderActionBtn.style.display = 'none';
+      }
+    }
+
+    function navigateUpOneFolder() {
+      const store = getStore();
+      const curr = (store.folders || []).find(f => f.id === currentFolderId);
+      if (curr) {
+        setFolder(curr.parentId);
+      } else {
+        setFolder(null);
+      }
+    }
+
+    /**
+     * Render Library Main Engine
+     */
+    function renderLibrary() {
+      const store = getStore();
+      const allFolders = store.folders || [];
+      const allDocs = store.documents || [];
+      const trash = store.trash || [];
+      const settings = store.settings || {};
+
+      // Badges
+      document.getElementById('sidebarDocBadge').textContent = allDocs.length;
+      document.getElementById('sidebarTrashBadge').textContent = trash.length;
+
+      // Storage
+      const totalBytes = allDocs.reduce((acc, d) => acc + (d.size || 0), 0);
+      const quota = settings.quotaBytes || 104857600;
+      const pct = Math.min(100, (totalBytes / quota) * 100).toFixed(1);
+      document.getElementById('sidebarStorageText').textContent = `${formatBytes(totalBytes)} / ${formatBytes(quota)}`;
+      document.getElementById('sidebarStorageBar').style.width = `${pct}%`;
+
+      renderBreadcrumbs();
+
+      // 1. Filter Subfolders
+      const subfolders = allFolders.filter(f => f.parentId === currentFolderId);
+      document.getElementById('subfolderCountBadge').textContent = `(${subfolders.length})`;
+      const foldersContainer = document.getElementById('foldersContainer');
+      foldersContainer.innerHTML = '';
+
+      if (subfolders.length === 0) {
+        if (currentFolderId) {
+          document.getElementById('subfoldersSection').style.display = 'none';
+        } else {
+          document.getElementById('subfoldersSection').style.display = 'block';
+          foldersContainer.innerHTML = `<div style="grid-column: 1/-1; padding: 20px; text-align: center; color: var(--text-muted); background: #ffffff; border-radius: 12px; border: 1px dashed var(--border-color);">No folders in this vault level. Click "+ New Folder" to create one.</div>`;
+        }
+      } else {
+        document.getElementById('subfoldersSection').style.display = 'block';
+        subfolders.forEach(folder => {
+          const docCount = allDocs.filter(d => d.folderId === folder.id).length;
+          const childCount = allFolders.filter(f => f.parentId === folder.id).length;
+
+          const card = document.createElement('div');
+          card.className = 'folder-item-card';
+          card.innerHTML = `
+            <div class="folder-card-header">
+              <div class="folder-icon-box" style="background-color: ${folder.color}18; color: ${folder.color};">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+              </div>
+              <div style="position: relative;">
+                <button class="folder-options-btn" onclick="toggleFolderCardMenu(event, '${folder.id}')" title="Options">•••</button>
+                <div class="action-dropdown-menu" id="menu-${folder.id}">
+                  <div class="action-dropdown-item" onclick="openRenameFolderModal('${folder.id}')">Rename</div>
+                  <div class="action-dropdown-item" onclick="openMoveFolderModal('${folder.id}')">Move</div>
+                  <div class="action-dropdown-item danger" onclick="deleteFolderToTrash('${folder.id}')">Delete</div>
+                </div>
+              </div>
+            </div>
+            <div class="folder-title-line" onclick="setFolder('${folder.id}')" title="${folder.name}">
+              ${folder.name}
+            </div>
+            <div class="folder-meta-row" onclick="setFolder('${folder.id}')">
+              <span>${docCount} file${docCount !== 1 ? 's' : ''}</span>
+              <span>${childCount > 0 ? `${childCount} subfolders` : (folder.category || 'Folder').toUpperCase()}</span>
+            </div>
+          `;
+          foldersContainer.appendChild(card);
+        });
+      }
+
+      // 2. Filter & Sort Documents in Current Folder
+      let currentDocs = allDocs.filter(d => d.folderId === currentFolderId);
+
+      // Search filter
+      const searchQuery = (document.getElementById('librarySearchInput').value || '').trim().toLowerCase();
+      if (searchQuery) {
+        currentDocs = currentDocs.filter(d =>
+          d.name.toLowerCase().includes(searchQuery) ||
+          (d.tags && d.tags.some(t => t.toLowerCase().includes(searchQuery)))
+        );
+      }
+
+      // Type pill filter
+      if (activeFilter === 'starred') {
+        currentDocs = currentDocs.filter(d => d.starred);
+      } else if (activeFilter !== 'all') {
+        currentDocs = currentDocs.filter(d => getFileTypeInfo(d.type).category === activeFilter);
+      }
+
+      // Sorting
+      currentDocs.sort((a, b) => {
+        if (activeSort === 'date-desc') return (b.createdAt || 0) - (a.createdAt || 0);
+        if (activeSort === 'date-asc') return (a.createdAt || 0) - (b.createdAt || 0);
+        if (activeSort === 'name-asc') return a.name.localeCompare(b.name);
+        if (activeSort === 'name-desc') return b.name.localeCompare(a.name);
+        if (activeSort === 'size-desc') return (b.size || 0) - (a.size || 0);
+        if (activeSort === 'size-asc') return (a.size || 0) - (b.size || 0);
+        return 0;
+      });
+
+      document.getElementById('docCountBadge').textContent = `(${currentDocs.length})`;
+
+      // Render documents according to viewMode
+      const docsContainer = document.getElementById('documentsContainer');
+      docsContainer.innerHTML = '';
+
+      if (currentDocs.length === 0) {
+        docsContainer.innerHTML = `
+          <div style="background: #ffffff; border: 1px dashed var(--border-color); border-radius: 12px; padding: 48px 24px; text-align: center; color: var(--text-muted);">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5" style="margin: 0 auto 12px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+            <p style="font-size: 15px; font-weight: 700; margin-bottom: 6px;">No documents in this view</p>
+            <p style="font-size: 13px; color: var(--text-light); margin-bottom: 16px;">Upload course notes, textbook chapters, or problem sets here.</p>
+            <button class="btn btn-primary" onclick="openUploadModal()">Upload Document</button>
+          </div>
+        `;
+        return;
+      }
+
+      if (viewMode === 'grid') {
+        const grid = document.createElement('div');
+        grid.className = 'docs-grid-container';
+        currentDocs.forEach(doc => {
+          const info = getFileTypeInfo(doc.type);
+          const isSelected = selectedDocIds.has(doc.id);
+          const card = document.createElement('div');
+          card.className = `doc-grid-card ${isSelected ? 'selected' : ''}`;
+          card.innerHTML = `
+            <div class="doc-card-top">
+              <input type="checkbox" class="doc-card-select-check" ${isSelected ? 'checked' : ''} onclick="toggleSelectDoc(event, '${doc.id}')">
+              <div class="doc-format-badge" style="background-color: ${info.bg};">${info.label}</div>
+              <button class="star-btn ${doc.starred ? 'starred' : ''}" style="color: ${doc.starred ? '#f59e0b' : '#cbd5e1'}; background:none; border:none; cursor:pointer;" onclick="toggleStar(event, '${doc.id}')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="${doc.starred ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+              </button>
+            </div>
+            <div class="doc-grid-name" onclick="openDocViewer('${doc.id}')" title="${doc.name}">${doc.name}</div>
+            <div class="doc-grid-meta">
+              <span>${formatBytes(doc.size)}</span>
+              <div style="display:flex; gap:6px;">
+                <button onclick="openRenameDocModal('${doc.id}')" title="Rename" style="background:none; border:none; color:var(--text-light); cursor:pointer;">✏️</button>
+                <button onclick="deleteDocToTrash('${doc.id}')" title="Delete" style="background:none; border:none; color:var(--danger); cursor:pointer;">🗑️</button>
+              </div>
+            </div>
+          `;
+          grid.appendChild(card);
+        });
+        docsContainer.appendChild(grid);
+      } else {
+        // List View
+        const listWrapper = document.createElement('div');
+        listWrapper.className = 'docs-list-container';
+        listWrapper.innerHTML = `
+          <div class="list-header-row">
+            <div></div>
+            <div>Name</div>
+            <div>Format</div>
+            <div>Size</div>
+            <div>Modified</div>
+            <div style="text-align: right;">Actions</div>
+          </div>
+        `;
+        currentDocs.forEach(doc => {
+          const info = getFileTypeInfo(doc.type);
+          const isSelected = selectedDocIds.has(doc.id);
+          const dateStr = new Date(doc.createdAt || Date.now()).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+          const row = document.createElement('div');
+          row.className = `list-item-row ${isSelected ? 'selected' : ''}`;
+          row.innerHTML = `
+            <div>
+              <input type="checkbox" class="doc-card-select-check" ${isSelected ? 'checked' : ''} onclick="toggleSelectDoc(event, '${doc.id}')">
+            </div>
+            <div style="display:flex; align-items:center; gap:10px; min-width:0;" onclick="openDocViewer('${doc.id}')">
+              <span style="font-size:16px;">${info.icon}</span>
+              <span style="font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${doc.name}</span>
+            </div>
+            <div style="color:var(--text-muted); font-size:12px;">${info.label}</div>
+            <div style="color:var(--text-light); font-size:12px;">${formatBytes(doc.size)}</div>
+            <div style="color:var(--text-light); font-size:12px;">${dateStr}</div>
+            <div style="display:flex; justify-content:flex-end; gap:8px;">
+              <button class="star-btn ${doc.starred ? 'starred' : ''}" style="color:${doc.starred ? '#f59e0b' : '#cbd5e1'}; background:none; border:none; cursor:pointer;" onclick="toggleStar(event, '${doc.id}')">★</button>
+              <button onclick="openRenameDocModal('${doc.id}')" style="background:none; border:none; cursor:pointer;" title="Rename">✏️</button>
+              <button onclick="deleteDocToTrash('${doc.id}')" style="background:none; border:none; color:var(--danger); cursor:pointer;" title="Delete">🗑️</button>
+            </div>
+          `;
+          listWrapper.appendChild(row);
+        });
+        docsContainer.appendChild(listWrapper);
+      }
+    }
+
+    /**
+     * View and Filter Toggles
+     */
+    function setFilter(filter) {
+      activeFilter = filter;
+      document.querySelectorAll('.filter-pill').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = Array.from(document.querySelectorAll('.filter-pill')).find(b => b.textContent.toLowerCase().includes(filter.toLowerCase()));
+      if (activeBtn) activeBtn.classList.add('active');
+      renderLibrary();
+    }
+
+    function setViewMode(mode) {
+      viewMode = mode;
+      document.getElementById('viewGridBtn').classList.toggle('active', mode === 'grid');
+      document.getElementById('viewListBtn').classList.toggle('active', mode === 'list');
+      renderLibrary();
+    }
+
+    function handleSortChange(sort) {
+      activeSort = sort;
+      renderLibrary();
+    }
+
+    /**
+     * Bulk Selection
+     */
+    function toggleSelectDoc(e, id) {
+      e.stopPropagation();
+      if (selectedDocIds.has(id)) selectedDocIds.delete(id);
+      else selectedDocIds.add(id);
+      updateBulkBar();
+      renderLibrary();
+    }
+
+    function toggleSelectAll(checked) {
+      const store = getStore();
+      const currentDocs = (store.documents || []).filter(d => d.folderId === currentFolderId);
+      if (checked) {
+        currentDocs.forEach(d => selectedDocIds.add(d.id));
+      } else {
+        selectedDocIds.clear();
+      }
+      updateBulkBar();
+      renderLibrary();
+    }
+
+    function deselectAll() {
+      selectedDocIds.clear();
+      document.getElementById('selectAllCheckbox').checked = false;
+      updateBulkBar();
+      renderLibrary();
+    }
+
+    function updateBulkBar() {
+      const bar = document.getElementById('bulkActionBar');
+      const count = selectedDocIds.size;
+      if (count > 0) {
+        bar.classList.add('visible');
+        document.getElementById('bulkSelectedCount').textContent = `${count} item${count > 1 ? 's' : ''} selected`;
+      } else {
+        bar.classList.remove('visible');
+      }
+    }
+
+    function bulkStarSelected() {
+      const store = getStore();
+      selectedDocIds.forEach(id => {
+        const d = store.documents.find(doc => doc.id === id);
+        if (d) d.starred = true;
+      });
+      saveStore(store);
+      showToast(`Starred ${selectedDocIds.size} documents`, 'success');
+      deselectAll();
+    }
+
+    function bulkDeleteSelected() {
+      if (!confirm(`Move ${selectedDocIds.size} selected document(s) to Trash?`)) return;
+      const store = getStore();
+      const now = Date.now();
+      const remainingDocs = [];
+
+      store.documents.forEach(doc => {
+        if (selectedDocIds.has(doc.id)) {
+          store.trash.push({
+            id: 'trash-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4),
+            originalId: doc.id,
+            itemType: 'document',
+            name: doc.name,
+            data: doc,
+            originalFolderId: doc.folderId,
+            originalPath: getBreadcrumbString(store.folders, doc.folderId),
+            deletedAt: now
+          });
+        } else {
+          remainingDocs.push(doc);
+        }
+      });
+
+      store.documents = remainingDocs;
+      saveStore(store);
+      showToast(`Moved ${selectedDocIds.size} document(s) to Trash`, 'info');
+      deselectAll();
+    }
+
+    function bulkDownloadSelected() {
+      const store = getStore();
+      let count = 0;
+      selectedDocIds.forEach(id => {
+        const doc = store.documents.find(d => d.id === id);
+        if (doc) {
+          count++;
+          const blob = new Blob([doc.contentPreview || 'StudyVault File'], { type: doc.mimeType || 'text/plain' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = doc.name;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }
+      });
+      showToast(`Downloaded ${count} file(s)`, 'success');
+      deselectAll();
+    }
+
+    function openBulkMoveModal() {
+      const store = getStore();
+      const select = document.getElementById('moveDestinationSelect');
+      select.innerHTML = '<option value="">Vault Root</option>';
+      (store.folders || []).forEach(f => {
+        const opt = document.createElement('option');
+        opt.value = f.id;
+        opt.textContent = `📁 ${f.name}`;
+        select.appendChild(opt);
+      });
+
+      document.getElementById('moveModalTitle').textContent = `Move ${selectedDocIds.size} Document(s)`;
+      document.getElementById('movingItemId').value = 'BULK_DOCS';
+      document.getElementById('movingItemType').value = 'bulk_docs';
+      document.getElementById('moveModal').classList.add('active');
+    }
+
+    /**
+     * Folder Creation & Renaming
+     */
+    function initColorSwatches() {
+      const container = document.getElementById('colorSwatchesContainer');
+      container.innerHTML = '';
+      COLOR_PALETTE.forEach((color, idx) => {
+        const swatch = document.createElement('div');
+        swatch.className = `color-swatch ${idx === 0 ? 'selected' : ''}`;
+        swatch.style.backgroundColor = color.hex;
+        swatch.onclick = () => {
+          document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+          swatch.classList.add('selected');
+          selectedFolderColor = color.hex;
+        };
+        container.appendChild(swatch);
+      });
+    }
+
+    function openNewFolderModal() {
+      const store = getStore();
+      document.getElementById('folderModalTitle').textContent = 'Create New Folder';
+      document.getElementById('editingFolderId').value = '';
+      document.getElementById('folderNameInput').value = '';
+
+      const select = document.getElementById('folderParentSelect');
+      select.innerHTML = '<option value="">Vault Root</option>';
+      (store.folders || []).forEach(f => {
+        const opt = document.createElement('option');
+        opt.value = f.id;
+        opt.textContent = `📁 ${f.name}`;
+        if (f.id === currentFolderId) opt.selected = true;
+        select.appendChild(opt);
+      });
+
+      document.getElementById('folderModal').classList.add('active');
+    }
+
+    function openRenameFolderModal(folderId) {
+      const store = getStore();
+      const folder = store.folders.find(f => f.id === folderId);
+      if (!folder) return;
+
+      document.getElementById('folderModalTitle').textContent = 'Rename Folder';
+      document.getElementById('editingFolderId').value = folder.id;
+      document.getElementById('folderNameInput').value = folder.name;
+      document.getElementById('folderCategorySelect').value = folder.category || 'subject';
+
+      const select = document.getElementById('folderParentSelect');
+      select.innerHTML = '<option value="">Vault Root</option>';
+      (store.folders || []).filter(f => f.id !== folder.id).forEach(f => {
+        const opt = document.createElement('option');
+        opt.value = f.id;
+        opt.textContent = `📁 ${f.name}`;
+        if (f.id === folder.parentId) opt.selected = true;
+        select.appendChild(opt);
+      });
+
+      document.getElementById('folderModal').classList.add('active');
+    }
+
+    function closeFolderModal() {
+      document.getElementById('folderModal').classList.remove('active');
+    }
+
+    function handleSaveFolder(e) {
+      e.preventDefault();
+      const name = document.getElementById('folderNameInput').value.trim();
+      const parentId = document.getElementById('folderParentSelect').value || null;
+      const category = document.getElementById('folderCategorySelect').value;
+      const editingId = document.getElementById('editingFolderId').value;
+
+      if (!name) return;
+      const store = getStore();
+
+      if (editingId) {
+        // Edit existing
+        const f = store.folders.find(folder => folder.id === editingId);
+        if (f) {
+          f.name = name;
+          f.parentId = parentId;
+          f.category = category;
+          f.color = selectedFolderColor;
+          f.updatedAt = Date.now();
+          showToast(`Folder renamed to "${name}"`, 'success');
+        }
+      } else {
+        // New folder
+        const newFolder = {
+          id: 'f-' + Date.now(),
+          name,
+          parentId,
+          category,
+          color: selectedFolderColor,
+          createdAt: Date.now(),
+          updatedAt: Date.now()
+        };
+        store.folders.push(newFolder);
+        showToast(`Folder "${name}" created!`, 'success');
+      }
+
+      saveStore(store);
+      closeFolderModal();
+    }
+
+    /**
+     * Folder Moving
+     */
+    function openMoveFolderModal(folderId) {
+      const store = getStore();
+      const folder = store.folders.find(f => f.id === folderId);
+      if (!folder) return;
+
+      const select = document.getElementById('moveDestinationSelect');
+      select.innerHTML = '<option value="">Vault Root</option>';
+
+      // Prevent moving folder into itself or its own descendants
+      const descendantIds = getDescendantFolderIds(store.folders, folder.id);
+      (store.folders || []).forEach(f => {
+        if (f.id !== folder.id && !descendantIds.has(f.id)) {
+          const opt = document.createElement('option');
+          opt.value = f.id;
+          opt.textContent = `📁 ${f.name}`;
+          select.appendChild(opt);
+        }
+      });
+
+      document.getElementById('moveModalTitle').textContent = `Move Folder "${folder.name}"`;
+      document.getElementById('movingItemId').value = folder.id;
+      document.getElementById('movingItemType').value = 'folder';
+      document.getElementById('moveModal').classList.add('active');
+    }
+
+    function getDescendantFolderIds(folders, parentId) {
+      const descendants = new Set();
+      function traverse(pid) {
+        folders.filter(f => f.parentId === pid).forEach(child => {
+          descendants.add(child.id);
+          traverse(child.id);
+        });
+      }
+      traverse(parentId);
+      return descendants;
+    }
+
+    function closeMoveModal() {
+      document.getElementById('moveModal').classList.remove('active');
+    }
+
+    function handleExecuteMove(e) {
+      e.preventDefault();
+      const itemId = document.getElementById('movingItemId').value;
+      const itemType = document.getElementById('movingItemType').value;
+      const targetParentId = document.getElementById('moveDestinationSelect').value || null;
+
+      const store = getStore();
+
+      if (itemType === 'folder') {
+        const folder = store.folders.find(f => f.id === itemId);
+        if (folder) {
+          folder.parentId = targetParentId;
+          folder.updatedAt = Date.now();
+          showToast(`Folder moved successfully`, 'success');
+        }
+      } else if (itemType === 'bulk_docs') {
+        selectedDocIds.forEach(id => {
+          const doc = store.documents.find(d => d.id === id);
+          if (doc) doc.folderId = targetParentId;
+        });
+        showToast(`Moved ${selectedDocIds.size} document(s)`, 'success');
+        deselectAll();
+      }
+
+      saveStore(store);
+      closeMoveModal();
+    }
+
+    /**
+     * Delete to Trash
+     */
+    function deleteFolderToTrash(folderId) {
+      const store = getStore();
+      const folder = store.folders.find(f => f.id === folderId);
+      if (!folder) return;
+
+      if (!confirm(`Move folder "${folder.name}" and all its contents to Trash?`)) return;
+
+      const now = Date.now();
+      const folderDescendantIds = getDescendantFolderIds(store.folders, folder.id);
+      folderDescendantIds.add(folder.id);
+
+      // Move folder to trash
+      store.trash.push({
+        id: 'trash-' + Date.now(),
+        originalId: folder.id,
+        itemType: 'folder',
+        name: folder.name,
+        data: folder,
+        originalFolderId: folder.parentId,
+        originalPath: getBreadcrumbString(store.folders, folder.parentId),
+        deletedAt: now
+      });
+
+      // Move subfolders
+      store.folders = store.folders.filter(f => !folderDescendantIds.has(f.id));
+
+      // Move docs inside these folders to trash
+      const remainingDocs = [];
+      store.documents.forEach(doc => {
+        if (folderDescendantIds.has(doc.folderId)) {
+          store.trash.push({
+            id: 'trash-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4),
+            originalId: doc.id,
+            itemType: 'document',
+            name: doc.name,
+            data: doc,
+            originalFolderId: doc.folderId,
+            originalPath: getBreadcrumbString(store.folders, doc.folderId),
+            deletedAt: now
+          });
+        } else {
+          remainingDocs.push(doc);
+        }
+      });
+      store.documents = remainingDocs;
+
+      if (currentFolderId === folderId) currentFolderId = folder.parentId;
+
+      saveStore(store);
+      showToast(`Folder "${folder.name}" moved to Trash`, 'info');
+    }
+
+    function deleteDocToTrash(docId) {
+      const store = getStore();
+      const doc = store.documents.find(d => d.id === docId);
+      if (!doc) return;
+
+      store.trash.push({
+        id: 'trash-' + Date.now(),
+        originalId: doc.id,
+        itemType: 'document',
+        name: doc.name,
+        data: doc,
+        originalFolderId: doc.folderId,
+        originalPath: getBreadcrumbString(store.folders, doc.folderId),
+        deletedAt: Date.now()
+      });
+
+      store.documents = store.documents.filter(d => d.id !== docId);
+      saveStore(store);
+      showToast(`Document "${doc.name}" moved to Trash`, 'info');
+    }
+
+    function getBreadcrumbString(folders, folderId) {
+      if (!folderId) return 'Vault Root';
+      const map = new Map();
+      folders.forEach(f => map.set(f.id, f));
+      const parts = [];
+      let c = map.get(folderId);
+      while (c) {
+        parts.unshift(c.name);
+        c = map.get(c.parentId);
+      }
+      return parts.join(' > ');
+    }
+
+    /**
+     * Document Renaming
+     */
+    function openRenameDocModal(docId) {
+      const store = getStore();
+      const doc = store.documents.find(d => d.id === docId);
+      if (!doc) return;
+
+      document.getElementById('renamingDocId').value = doc.id;
+      document.getElementById('renameDocInput').value = doc.name;
+      document.getElementById('renameDocModal').classList.add('active');
+    }
+
+    function closeRenameDocModal() {
+      document.getElementById('renameDocModal').classList.remove('active');
+    }
+
+    function handleExecuteRenameDoc(e) {
+      e.preventDefault();
+      const docId = document.getElementById('renamingDocId').value;
+      const newName = document.getElementById('renameDocInput').value.trim();
+      if (!newName) return;
+
+      const store = getStore();
+      const doc = store.documents.find(d => d.id === docId);
+      if (doc) {
+        doc.name = newName;
+        doc.updatedAt = Date.now();
+        saveStore(store);
+        showToast('Document renamed', 'success');
+      }
+      closeRenameDocModal();
+    }
+
+    function toggleStar(e, docId) {
+      e.stopPropagation();
+      const store = getStore();
+      const doc = store.documents.find(d => d.id === docId);
+      if (doc) {
+        doc.starred = !doc.starred;
+        saveStore(store);
+      }
+    }
+
+    /**
+     * Upload Management
+     */
+    function openUploadModal() {
+      const store = getStore();
+      const select = document.getElementById('uploadTargetFolderSelect');
+      select.innerHTML = '<option value="">Vault Root</option>';
+      (store.folders || []).forEach(f => {
+        const opt = document.createElement('option');
+        opt.value = f.id;
+        opt.textContent = `📁 ${f.name}`;
+        if (f.id === currentFolderId) opt.selected = true;
+        select.appendChild(opt);
+      });
+      stagedUploadFiles = [];
+      document.getElementById('selectedFilesPreview').innerHTML = '';
+      document.getElementById('uploadModal').classList.add('active');
+    }
+
+    function closeUploadModal() {
+      document.getElementById('uploadModal').classList.remove('active');
+    }
+
+    function handleFileSelect(e) {
+      const files = Array.from(e.target.files || []);
+      stagedUploadFiles = [...stagedUploadFiles, ...files];
+      renderStagedPreview();
+    }
+
+    function renderStagedPreview() {
+      const preview = document.getElementById('selectedFilesPreview');
+      preview.innerHTML = stagedUploadFiles.map(f => `
+        <div style="display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid #f1f5f9;">
+          <span>📎 ${f.name}</span>
+          <span style="color:#64748b;">${formatBytes(f.size)}</span>
+        </div>
+      `).join('');
+    }
+
+    const dropzone = document.getElementById('uploadDropzone');
+    dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('dragover');
+      if (e.dataTransfer && e.dataTransfer.files) {
+        stagedUploadFiles = [...stagedUploadFiles, ...Array.from(e.dataTransfer.files)];
+        renderStagedPreview();
+      }
+    });
+
+    async function handleUploadSubmit(e) {
+      e.preventDefault();
+      if (stagedUploadFiles.length === 0) {
+        showToast('Please select at least one file to upload', 'error');
+        return;
+      }
+      const folderId = document.getElementById('uploadTargetFolderSelect').value || null;
+      const store = getStore();
+
+      for (const file of stagedUploadFiles) {
+        const ext = file.name.split('.').pop().toLowerCase();
+        let preview = `Study Document: ${file.name}`;
+        if (['txt', 'md'].includes(ext)) {
+          try { preview = await file.text(); } catch (err) { console.warn(err); }
+        }
+        store.documents.push({
+          id: 'doc-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4),
+          name: file.name,
+          folderId: folderId,
+          size: file.size,
+          type: ext,
+          mimeType: file.type || 'application/octet-stream',
+          starred: false,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+          tags: ['Upload'],
+          contentPreview: preview
+        });
+      }
+      saveStore(store);
+      closeUploadModal();
+      showToast(`Uploaded ${stagedUploadFiles.length} file(s)!`, 'success');
+      stagedUploadFiles = [];
+    }
+
+    /**
+     * Document Viewer Modal
+     */
+    function openDocViewer(docId) {
+      const store = getStore();
+      const doc = store.documents.find(d => d.id === docId);
+      if (!doc) return;
+
+      currentViewingDoc = doc;
+      viewerZoom = 1.0;
+      viewerRotation = 0;
+      document.getElementById('viewerZoomLabel').textContent = '100%';
+
+      document.getElementById('viewerDocTitle').innerHTML = `
+        <span>${doc.name}</span>
+        <span style="font-size:11px; opacity:0.7; font-weight:normal;">(${formatBytes(doc.size)})</span>
+      `;
+
+      renderViewerSurface(doc);
+      document.getElementById('docViewerModal').classList.add('active');
+    }
+
+    function renderViewerSurface(doc) {
+      const container = document.getElementById('viewerContentArea');
+      const ext = (doc.type || '').toLowerCase();
+      const previewText = doc.contentPreview || 'No additional content preview available.';
+
+      if (ext === 'pdf') {
+        container.innerHTML = `
+          <div class="viewer-page-surface" id="viewerTransformSurface">
+            <div style="border-bottom: 2px solid #0f172a; padding-bottom: 12px; margin-bottom: 20px; display: flex; justify-content: space-between;">
+              <div>
+                <h2 style="font-size: 20px; font-weight: bold;">STUDYVAULT - PDF VIEWER</h2>
+                <div style="font-size: 13px; color: #64748b; font-family: sans-serif;">File: ${doc.name}</div>
+              </div>
+              <div style="font-size: 12px; color: #64748b; font-family: sans-serif;">Page 1 of 1</div>
+            </div>
+            <div style="white-space: pre-wrap; font-size: 14px; color: #1e293b; line-height: 1.8;">
+              ${escapeHtml(previewText)}
+            </div>
+          </div>
+        `;
+      } else if (['png', 'jpg', 'jpeg', 'webp', 'svg'].includes(ext)) {
+        container.innerHTML = `
+          <div class="viewer-page-surface" id="viewerTransformSurface" style="text-align: center; padding: 24px;">
+            <div style="width: 100%; height: 320px; background: #f8fafc; border: 2px dashed #93c5fd; border-radius: 12px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; margin-bottom: 16px;">
+              <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+              <div style="font-weight: 700; color: #1e3a8a;">${doc.name}</div>
+              <div style="font-size: 12px; color: #64748b;">${formatBytes(doc.size)}</div>
+            </div>
+            <div style="font-size: 13px; color: #475569;">${escapeHtml(previewText)}</div>
+          </div>
+        `;
+      } else {
+        container.innerHTML = `
+          <div class="viewer-page-surface" id="viewerTransformSurface">
+            <h3 style="font-size: 18px; margin-bottom: 14px; font-family: sans-serif; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">
+              ${doc.name}
+            </h3>
+            <pre style="white-space: pre-wrap; font-family: monospace; font-size: 13px; color: #0f172a; background: #f8fafc; padding: 16px; border-radius: 8px; border: 1px solid #e2e8f0; line-height: 1.6;">${escapeHtml(previewText)}</pre>
+          </div>
+        `;
+      }
+    }
+
+    function adjustViewerZoom(delta) {
+      viewerZoom = Math.max(0.4, Math.min(2.5, viewerZoom + delta));
+      document.getElementById('viewerZoomLabel').textContent = Math.round(viewerZoom * 100) + '%';
+      applyViewerTransform();
+    }
+
+    function rotateViewerDoc() {
+      viewerRotation = (viewerRotation + 90) % 360;
+      applyViewerTransform();
+    }
+
+    function applyViewerTransform() {
+      const surface = document.getElementById('viewerTransformSurface');
+      if (surface) surface.style.transform = `scale(${viewerZoom}) rotate(${viewerRotation}deg)`;
+    }
+
+    function downloadCurrentViewerDoc() {
+      if (!currentViewingDoc) return;
+      const content = currentViewingDoc.contentPreview || 'StudyVault File';
+      const blob = new Blob([content], { type: currentViewingDoc.mimeType || 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = currentViewingDoc.name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast(`Downloaded ${currentViewingDoc.name}`, 'success');
+    }
+
+    function closeViewerModal() {
+      document.getElementById('docViewerModal').classList.remove('active');
+      currentViewingDoc = null;
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function toggleCurrentFolderMenu() {
+      const menu = document.getElementById('currentFolderDropdown');
+      menu.classList.toggle('active');
+    }
+
+    function toggleFolderCardMenu(e, id) {
+      e.stopPropagation();
+      document.querySelectorAll('.action-dropdown-menu').forEach(m => m.classList.remove('active'));
+      const menu = document.getElementById(`menu-${id}`);
+      if (menu) menu.classList.toggle('active');
+    }
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.folder-options-btn') && !e.target.closest('#folderActionBtn')) {
+        document.querySelectorAll('.action-dropdown-menu').forEach(m => m.classList.remove('active'));
+      }
+    });
+
+    document.getElementById('librarySearchInput').addEventListener('input', () => renderLibrary());
+
+    // Mobile Sidebar
+    document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+      document.getElementById('sidebar').classList.toggle('open');
+    });
+
+    window.addEventListener('storage', () => renderLibrary());
+    window.addEventListener('studyvault:data-changed', () => renderLibrary());
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initColorSwatches();
+      initFolderFromUrl();
+      renderLibrary();
+    });
+  </script>
+</body>
+</html>

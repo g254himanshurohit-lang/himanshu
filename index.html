@@ -1,0 +1,2170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - StudyVault | Personal Study Notes & Document Storage</title>
+  <meta name="description" content="StudyVault Dashboard - Manage your academic notes, folders, and study documents with real-time statistics and quick access.">
+  <meta property="og:title" content="Dashboard - StudyVault">
+  <meta property="og:description" content="StudyVault - Your Notes. Our Priority.">
+  <meta property="og:type" content="website">
+  <link rel="icon" type="image/svg+xml" href="/assets/studyvault-logo.svg">
+  <style>
+    /* ---------------- StudyVault Design System ---------------- */
+    :root {
+      --bg-page: #f8fafc;
+      --bg-surface: #ffffff;
+      --bg-surface-elevated: #ffffff;
+      --border-color: #e2e8f0;
+      --border-subtle: #f1f5f9;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --text-light: #94a3b8;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-light: #eff6ff;
+      --sidebar-bg: #0b1329;
+      --sidebar-hover: #1e293b;
+      --sidebar-border: #1e293b;
+      --sidebar-text: #94a3b8;
+      --sidebar-text-active: #ffffff;
+      --danger: #ef4444;
+      --danger-light: #fef2f2;
+      --success: #10b981;
+      --success-light: #ecfdf5;
+      --warning: #f59e0b;
+      --warning-light: #fffbeb;
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+      --radius: 12px;
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--font-family);
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      display: flex;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    button, input, select { font-family: inherit; }
+
+    /* ---------------- Sidebar ---------------- */
+    .sidebar {
+      width: 270px;
+      background-color: var(--sidebar-bg);
+      color: var(--sidebar-text);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      border-right: 1px solid var(--sidebar-border);
+      z-index: 40;
+      transition: transform 0.3s ease;
+    }
+
+    .brand-section {
+      padding: 24px 20px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    }
+    .brand-logo-img {
+      height: 38px;
+      width: auto;
+      object-fit: contain;
+    }
+    .brand-text-fallback {
+      display: flex;
+      flex-direction: column;
+    }
+    .brand-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: -0.3px;
+    }
+    .brand-title span { color: #60a5fa; }
+    .brand-tagline {
+      font-size: 10px;
+      font-weight: 600;
+      color: #94a3b8;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+    }
+
+    .nav-menu {
+      flex: 1;
+      padding: 20px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      overflow-y: auto;
+    }
+
+    .nav-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #64748b;
+      padding: 12px 12px 6px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      color: var(--sidebar-text);
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.15s ease;
+      cursor: pointer;
+    }
+    .nav-item:hover {
+      background-color: var(--sidebar-hover);
+      color: #ffffff;
+    }
+    .nav-item.active {
+      background: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%);
+      color: #ffffff;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    }
+    .nav-icon {
+      width: 18px;
+      height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .nav-badge {
+      margin-left: auto;
+      background-color: rgba(255, 255, 255, 0.12);
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 999px;
+    }
+
+    /* Sidebar Folder Tree */
+    .sidebar-tree-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 12px 6px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #64748b;
+    }
+    .tree-folder-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      margin-bottom: 12px;
+    }
+    .tree-folder-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      color: #94a3b8;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .tree-folder-item:hover {
+      background-color: rgba(255, 255, 255, 0.05);
+      color: #ffffff;
+    }
+    .tree-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .sidebar-bottom {
+      padding: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      background-color: rgba(0, 0, 0, 0.2);
+    }
+    .storage-mini {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .storage-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #cbd5e1;
+    }
+    .storage-progress {
+      width: 100%;
+      height: 6px;
+      background-color: rgba(255, 255, 255, 0.15);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .storage-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #3b82f6, #60a5fa);
+      border-radius: 999px;
+      transition: width 0.3s ease;
+    }
+
+    /* ---------------- Main Content Layout ---------------- */
+    .main-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    /* Top Navbar */
+    .top-navbar {
+      height: 70px;
+      background-color: var(--bg-surface);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex: 1;
+      max-width: 520px;
+    }
+    .mobile-menu-btn {
+      display: none;
+      background: none;
+      border: none;
+      padding: 8px;
+      cursor: pointer;
+      color: var(--text-main);
+      border-radius: 6px;
+    }
+
+    /* Live Global Search */
+    .search-box-container {
+      position: relative;
+      width: 100%;
+    }
+    .search-input {
+      width: 100%;
+      height: 42px;
+      background-color: var(--bg-page);
+      border: 1px solid var(--border-color);
+      border-radius: 999px;
+      padding: 0 16px 0 42px;
+      font-size: 14px;
+      color: var(--text-main);
+      outline: none;
+      transition: all 0.2s;
+    }
+    .search-input:focus {
+      background-color: #ffffff;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+    .search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-light);
+      pointer-events: none;
+    }
+    .search-shortcut {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-light);
+      background-color: #ffffff;
+      border: 1px solid var(--border-color);
+      padding: 2px 6px;
+      border-radius: 4px;
+      pointer-events: none;
+    }
+
+    /* Live Search Results Dropdown */
+    .search-results-dropdown {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      right: 0;
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      box-shadow: var(--shadow-lg);
+      max-height: 400px;
+      overflow-y: auto;
+      z-index: 100;
+      display: none;
+    }
+    .search-results-dropdown.active { display: block; }
+    .search-result-group {
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .search-result-group:last-child { border-bottom: none; }
+    .search-group-header {
+      padding: 6px 16px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+    }
+    .search-result-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 16px;
+      cursor: pointer;
+      transition: background 0.12s;
+    }
+    .search-result-item:hover {
+      background-color: var(--primary-light);
+    }
+    .search-result-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+    .search-result-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 18px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s ease;
+    }
+    .btn-primary {
+      background-color: var(--primary);
+      color: #ffffff;
+    }
+    .btn-primary:hover {
+      background-color: var(--primary-hover);
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+    }
+    .btn-secondary {
+      background-color: #ffffff;
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+    }
+    .btn-secondary:hover {
+      background-color: var(--bg-page);
+      border-color: #cbd5e1;
+    }
+    .btn-icon {
+      padding: 8px;
+      background: none;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn-icon:hover {
+      background-color: var(--bg-page);
+      color: var(--text-main);
+    }
+
+    .user-profile-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 4px 8px 4px 4px;
+      border: 1px solid var(--border-color);
+      border-radius: 999px;
+      background: #ffffff;
+      cursor: pointer;
+    }
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #3b82f6, #1e40af);
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .user-info-text {
+      display: flex;
+      flex-direction: column;
+      text-align: left;
+      line-height: 1.2;
+      padding-right: 6px;
+    }
+    .user-name {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+    .user-role {
+      font-size: 10px;
+      color: var(--success);
+      font-weight: 600;
+    }
+
+    /* ---------------- Dashboard Body ---------------- */
+    .dashboard-content {
+      padding: 32px;
+      max-width: 1440px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* Welcome Banner */
+    .welcome-banner {
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      color: #ffffff;
+      border-radius: 16px;
+      padding: 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 28px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow-md);
+    }
+    .welcome-banner::after {
+      content: '';
+      position: absolute;
+      right: -60px;
+      top: -60px;
+      width: 240px;
+      height: 240px;
+      background: radial-gradient(circle, rgba(59, 130, 246, 0.25) 0%, rgba(37, 99, 235, 0) 70%);
+      border-radius: 50%;
+    }
+    .welcome-text h1 {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 6px;
+    }
+    .welcome-text p {
+      font-size: 14px;
+      color: #94a3b8;
+      max-width: 580px;
+      line-height: 1.5;
+    }
+    .welcome-actions {
+      display: flex;
+      gap: 12px;
+      z-index: 2;
+    }
+
+    /* Stat Cards Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      margin-bottom: 32px;
+    }
+    .stat-card {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 22px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+    .stat-icon-wrapper {
+      width: 52px;
+      height: 52px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .stat-content {
+      display: flex;
+      flex-direction: column;
+    }
+    .stat-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+    .stat-value {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--text-main);
+      line-height: 1.1;
+    }
+    .stat-subtext {
+      font-size: 11px;
+      color: var(--text-light);
+      margin-top: 4px;
+    }
+
+    /* Quick Access Folders */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section-link {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--primary);
+    }
+    .section-link:hover { text-decoration: underline; }
+
+    .folders-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px;
+      margin-bottom: 32px;
+    }
+    .folder-card {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.15s;
+      cursor: pointer;
+      position: relative;
+    }
+    .folder-card:hover {
+      border-color: var(--primary);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+    .folder-card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .folder-card-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .folder-category-badge {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background-color: var(--bg-page);
+      color: var(--text-muted);
+      border: 1px solid var(--border-color);
+    }
+    .folder-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-main);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .folder-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* Dashboard 2-Column: Recent Documents & Storage Breakdown */
+    .dashboard-split-layout {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 24px;
+    }
+
+    .card-panel {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* Document Table / List */
+    .doc-table-header {
+      display: grid;
+      grid-template-columns: 3fr 1.5fr 1fr 1fr 60px;
+      padding: 10px 14px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-color);
+    }
+    .doc-row {
+      display: grid;
+      grid-template-columns: 3fr 1.5fr 1fr 1fr 60px;
+      align-items: center;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border-subtle);
+      transition: background 0.12s;
+      cursor: pointer;
+    }
+    .doc-row:last-child { border-bottom: none; }
+    .doc-row:hover { background-color: var(--primary-light); }
+    .doc-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+    .doc-badge-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 800;
+      color: #ffffff;
+      flex-shrink: 0;
+    }
+    .doc-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-main);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .doc-folder-tag {
+      font-size: 12px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .doc-size, .doc-date {
+      font-size: 12px;
+      color: var(--text-light);
+    }
+    .doc-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 6px;
+    }
+    .star-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #cbd5e1;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.15s;
+    }
+    .star-btn.starred { color: #f59e0b; }
+    .star-btn:hover { color: #f59e0b; }
+
+    /* Storage Breakdown Panel */
+    .storage-breakdown-panel h3 {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .storage-meter-large {
+      margin-bottom: 20px;
+    }
+    .meter-bar-stacked {
+      display: flex;
+      height: 12px;
+      border-radius: 999px;
+      overflow: hidden;
+      background-color: #f1f5f9;
+      margin-bottom: 8px;
+    }
+    .meter-segment {
+      height: 100%;
+      transition: width 0.3s ease;
+    }
+    .storage-legend-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+    }
+    .legend-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 3px;
+    }
+    .legend-label { font-weight: 500; color: var(--text-main); }
+    .legend-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .legend-bytes { font-weight: 600; color: var(--text-muted); }
+    .legend-pct { font-size: 11px; color: var(--text-light); width: 34px; text-align: right; }
+
+    /* ---------------- Modals ---------------- */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .modal-card {
+      background: #ffffff;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 520px;
+      padding: 28px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+      position: relative;
+      transform: translateY(12px) scale(0.98);
+      transition: transform 0.2s ease;
+    }
+    .modal-overlay.active .modal-card {
+      transform: translateY(0) scale(1);
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .modal-title { font-size: 18px; font-weight: 800; color: var(--text-main); }
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 20px;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+    .form-group {
+      margin-bottom: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .form-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+    .form-control {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+    }
+    .form-control:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+    .color-swatches {
+      display: flex;
+      gap: 10px;
+      margin-top: 4px;
+    }
+    .color-swatch {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: transform 0.1s, border-color 0.1s;
+    }
+    .color-swatch.selected {
+      border-color: #0f172a;
+      transform: scale(1.15);
+    }
+    .dropzone {
+      border: 2px dashed var(--border-color);
+      border-radius: 12px;
+      padding: 32px 20px;
+      text-align: center;
+      cursor: pointer;
+      background: var(--bg-page);
+      transition: all 0.2s;
+    }
+    .dropzone.dragover {
+      border-color: var(--primary);
+      background-color: var(--primary-light);
+    }
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    /* ---------------- Document Viewer Modal ---------------- */
+    .viewer-modal-card {
+      background: #ffffff;
+      border-radius: 16px;
+      width: 90vw;
+      max-width: 960px;
+      height: 85vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: var(--shadow-lg);
+    }
+    .viewer-header {
+      padding: 14px 20px;
+      background: #0f172a;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .viewer-title {
+      font-size: 15px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .viewer-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .viewer-btn {
+      background: rgba(255, 255, 255, 0.12);
+      border: none;
+      color: #ffffff;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .viewer-btn:hover { background: rgba(255, 255, 255, 0.22); }
+    .viewer-body {
+      flex: 1;
+      background: #525659;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: auto;
+      padding: 24px;
+    }
+    .viewer-page-surface {
+      background: #ffffff;
+      color: #0f172a;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+      border-radius: 4px;
+      min-height: 520px;
+      width: 100%;
+      max-width: 700px;
+      padding: 40px;
+      font-family: Georgia, serif;
+      line-height: 1.6;
+      transition: transform 0.2s ease;
+      transform-origin: center center;
+    }
+
+    /* Toast Notification */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 2000;
+    }
+    .toast {
+      background: #0f172a;
+      color: #ffffff;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: slideIn 0.25s ease;
+    }
+    .toast.success { border-left: 4px solid var(--success); }
+    .toast.error { border-left: 4px solid var(--danger); }
+    @keyframes slideIn {
+      from { transform: translateX(50px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .folders-grid { grid-template-columns: repeat(2, 1fr); }
+      .dashboard-split-layout { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 768px) {
+      .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        transform: translateX(-100%);
+      }
+      .sidebar.open { transform: translateX(0); }
+      .mobile-menu-btn { display: flex; }
+      .top-navbar { padding: 0 12px; gap: 8px; }
+      .nav-left { gap: 8px; }
+      .search-shortcut { display: none; }
+      .nav-right .btn span, .user-info-text { display: none; }
+      .nav-right .btn { padding: 8px 10px; font-size: 12px; }
+      .nav-right { gap: 6px; }
+      .stats-grid { grid-template-columns: 1fr; }
+      .folders-grid { grid-template-columns: 1fr; }
+      .dashboard-content { padding: 20px 14px; }
+      .welcome-banner { flex-direction: column; align-items: flex-start; gap: 16px; }
+      .doc-table-header { display: none; }
+      .doc-row { grid-template-columns: 1fr auto; gap: 8px; }
+      .doc-folder-tag, .doc-size, .doc-date { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar Navigation -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand-section">
+      <img src="/assets/studyvault-logo.svg" alt="StudyVault Logo" class="brand-logo-img" onerror="this.style.display='none'; document.getElementById('brandFallback').style.display='flex';">
+      <div class="brand-text-fallback" id="brandFallback" style="display: none;">
+        <span class="brand-title">Study<span>Vault</span></span>
+        <span class="brand-tagline">Your Notes. Our Priority.</span>
+      </div>
+    </div>
+
+    <nav class="nav-menu">
+      <div class="nav-label">Main Vault</div>
+      <a href="index.html" class="nav-item active">
+        <span class="nav-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        </span>
+        Dashboard
+      </a>
+      <a href="library.html" class="nav-item">
+        <span class="nav-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+        </span>
+        My Library
+        <span class="nav-badge" id="sidebarDocBadge">0</span>
+      </a>
+      <a href="trash.html" class="nav-item">
+        <span class="nav-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+        </span>
+        Trash
+        <span class="nav-badge" id="sidebarTrashBadge">0</span>
+      </a>
+      <a href="settings.html" class="nav-item">
+        <span class="nav-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        </span>
+        Settings & Backup
+      </a>
+
+      <div class="sidebar-tree-title">
+        <span>Pinned Subjects</span>
+        <a href="library.html" style="color: #60a5fa; font-size: 11px;">View All</a>
+      </div>
+      <ul class="tree-folder-list" id="sidebarFolderTree">
+        <!-- Rendered dynamically -->
+      </ul>
+    </nav>
+
+    <!-- Storage Usage Meter -->
+    <div class="sidebar-bottom">
+      <div class="storage-mini">
+        <div class="storage-header">
+          <span>Storage Quota</span>
+          <span id="storageMiniText">0 MB / 100 MB</span>
+        </div>
+        <div class="storage-progress">
+          <div class="storage-bar-fill" id="storageMiniBar" style="width: 0%;"></div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content Wrapper -->
+  <div class="main-wrapper">
+    <!-- Top Navbar -->
+    <header class="top-navbar">
+      <div class="nav-left">
+        <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle Menu">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </button>
+
+        <!-- Live Global Search -->
+        <div class="search-box-container">
+          <span class="search-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          </span>
+          <input type="text" class="search-input" id="globalSearchInput" placeholder="Search notes, subjects, chapters, or files..." autocomplete="off">
+          <span class="search-shortcut">Ctrl+K</span>
+
+          <!-- Search Results Dropdown -->
+          <div class="search-results-dropdown" id="searchResultsDropdown"></div>
+        </div>
+      </div>
+
+      <div class="nav-right">
+        <button class="btn btn-secondary" onclick="openUploadModal()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+          Upload
+        </button>
+        <button class="btn btn-primary" onclick="openNewFolderModal()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          New Folder
+        </button>
+
+        <a href="settings.html" class="user-profile-badge" title="Account & Backup Settings">
+          <div class="user-avatar" id="navAvatar">SV</div>
+          <div class="user-info-text">
+            <span class="user-name" id="navUserName">Scholar</span>
+            <span class="user-role">Cloud Vault Active</span>
+          </div>
+        </a>
+      </div>
+    </header>
+
+    <!-- Dashboard Main Area -->
+    <main class="dashboard-content">
+      <!-- Welcome Hero Banner -->
+      <section class="welcome-banner">
+        <div class="welcome-text">
+          <h1 id="welcomeGreeting">Welcome back to StudyVault!</h1>
+          <p>Organize all your study materials, lecture summaries, textbooks, and problem sets. Everything is backed up and securely organized in your personal vault.</p>
+        </div>
+        <div class="welcome-actions">
+          <a href="library.html" class="btn btn-primary" style="background: #ffffff; color: #0f172a;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+            Open My Library
+          </a>
+          <button class="btn btn-secondary" onclick="openUploadModal()" style="background: rgba(255,255,255,0.12); color: #ffffff; border-color: rgba(255,255,255,0.2);">
+            Quick Upload
+          </button>
+        </div>
+      </section>
+
+      <!-- Vault Statistics Grid -->
+      <section class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon-wrapper" style="background: #eff6ff; color: #2563eb;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+          </div>
+          <div class="stat-content">
+            <span class="stat-label">Total Folders</span>
+            <span class="stat-value" id="statTotalFolders">0</span>
+            <span class="stat-subtext">Across all subjects</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon-wrapper" style="background: #ecfdf5; color: #059669;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+          </div>
+          <div class="stat-content">
+            <span class="stat-label">Total Documents</span>
+            <span class="stat-value" id="statTotalDocs">0</span>
+            <span class="stat-subtext">PDFs, Notes & Sheets</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon-wrapper" style="background: #fffbeb; color: #d97706;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+          </div>
+          <div class="stat-content">
+            <span class="stat-label">Starred Documents</span>
+            <span class="stat-value" id="statStarredDocs">0</span>
+            <span class="stat-subtext">Quick priority notes</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon-wrapper" style="background: #fdf2f8; color: #db2777;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>
+          </div>
+          <div class="stat-content">
+            <span class="stat-label">Storage Usage</span>
+            <span class="stat-value" id="statStorageUsed">0 MB</span>
+            <span class="stat-subtext" id="statStoragePct">0% of 100 MB quota</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Quick Access Folders -->
+      <section style="margin-bottom: 32px;">
+        <div class="section-header">
+          <h2 class="section-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+            Quick Access Folders
+          </h2>
+          <a href="library.html" class="section-link">View Full Hierarchy →</a>
+        </div>
+
+        <div class="folders-grid" id="quickFoldersGrid">
+          <!-- Dynamically populated -->
+        </div>
+      </section>
+
+      <!-- Split Layout: Recent Documents & Categorized Breakdown -->
+      <div class="dashboard-split-layout">
+        <!-- Recent Documents Panel -->
+        <div class="card-panel">
+          <div class="section-header">
+            <h2 class="section-title">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              Recently Added Documents
+            </h2>
+            <a href="library.html" class="section-link">All Notes</a>
+          </div>
+
+          <div class="doc-table-header">
+            <span>Name</span>
+            <span>Folder</span>
+            <span>Size</span>
+            <span>Date</span>
+            <span style="text-align: right;">Action</span>
+          </div>
+
+          <div id="recentDocsList">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- Categorized Storage Breakdown Panel -->
+        <div class="card-panel storage-breakdown-panel">
+          <h3>
+            <span>Vault Storage Breakdown</span>
+            <a href="settings.html" class="section-link" style="font-size: 12px;">Manage</a>
+          </h3>
+
+          <div class="storage-meter-large">
+            <div class="meter-bar-stacked" id="stackedStorageMeter">
+              <!-- Dynamically populated stacked colored bars -->
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted);">
+              <span id="breakdownUsedText">0 MB used</span>
+              <span id="breakdownQuotaText">100 MB Quota</span>
+            </div>
+          </div>
+
+          <div class="storage-legend-list" id="storageLegendList">
+            <!-- Dynamically populated categories -->
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Create Folder Modal -->
+  <div class="modal-overlay" id="folderModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">Create New Folder</h3>
+        <button class="modal-close" onclick="closeFolderModal()">&times;</button>
+      </div>
+      <form id="createFolderForm" onsubmit="handleCreateFolder(event)">
+        <div class="form-group">
+          <label class="form-label" for="folderNameInput">Folder Name</label>
+          <input type="text" id="folderNameInput" class="form-control" placeholder="e.g. Organic Chemistry, Module 3" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="folderParentSelect">Parent Location</label>
+          <select id="folderParentSelect" class="form-control">
+            <option value="">Root (Top Level Subject)</option>
+            <!-- Dynamically filled with existing folders -->
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="folderCategorySelect">Folder Type / Scope</label>
+          <select id="folderCategorySelect" class="form-control">
+            <option value="subject">Subject / Course</option>
+            <option value="chapter">Chapter / Module</option>
+            <option value="unit">Unit / Topic</option>
+            <option value="general">General Notes</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Folder Color</label>
+          <div class="color-swatches" id="colorSwatchesContainer">
+            <!-- Dynamically rendered swatches -->
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeFolderModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Create Folder</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Upload Document Modal -->
+  <div class="modal-overlay" id="uploadModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">Upload Study Documents</h3>
+        <button class="modal-close" onclick="closeUploadModal()">&times;</button>
+      </div>
+      <form id="uploadDocForm" onsubmit="handleUploadSubmit(event)">
+        <div class="form-group">
+          <label class="form-label" for="uploadTargetFolderSelect">Select Folder</label>
+          <select id="uploadTargetFolderSelect" class="form-control">
+            <option value="">Vault Root</option>
+          </select>
+        </div>
+
+        <div class="dropzone" id="uploadDropzone" onclick="document.getElementById('fileInputElement').click()">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" style="margin: 0 auto 10px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+          <p style="font-weight: 700; font-size: 14px; margin-bottom: 4px;">Drag & drop files here, or browse</p>
+          <p style="font-size: 12px; color: var(--text-light);">Supports PDF, DOCX, PPTX, XLSX, PNG, JPG, TXT</p>
+          <input type="file" id="fileInputElement" multiple style="display: none;" onchange="handleFileSelect(event)">
+        </div>
+
+        <div id="selectedFilesPreview" style="margin-top: 14px; max-height: 120px; overflow-y: auto; font-size: 12px;"></div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeUploadModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="startUploadBtn">Start Upload</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Document Viewer Modal -->
+  <div class="modal-overlay" id="docViewerModal">
+    <div class="viewer-modal-card">
+      <div class="viewer-header">
+        <div class="viewer-title" id="viewerDocTitle">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+          <span>Document Title</span>
+        </div>
+        <div class="viewer-toolbar">
+          <button class="viewer-btn" onclick="adjustViewerZoom(-0.1)" title="Zoom Out">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          </button>
+          <span id="viewerZoomLabel" style="font-size: 12px; font-weight: 600; min-width: 44px; text-align: center;">100%</span>
+          <button class="viewer-btn" onclick="adjustViewerZoom(0.1)" title="Zoom In">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          </button>
+          <button class="viewer-btn" onclick="rotateViewerDoc()" title="Rotate 90deg">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+            Rotate
+          </button>
+          <button class="viewer-btn" onclick="downloadCurrentViewerDoc()" title="Download Original">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            Download
+          </button>
+          <button class="viewer-btn" onclick="closeViewerModal()" style="background: rgba(239, 68, 68, 0.4); margin-left: 8px;">
+            &times; Close
+          </button>
+        </div>
+      </div>
+      <div class="viewer-body" id="viewerContentArea">
+        <!-- Rendered Document View -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Vanilla JavaScript Application Script -->
+  <script>
+    /**
+     * StudyVault Client-Side Store & Application Logic
+     */
+    const STORAGE_KEY = 'STUDYVAULT_DATA_V2';
+
+    // Preset color swatches
+    const COLOR_PALETTE = [
+      { name: 'Indigo', hex: '#4f46e5' },
+      { name: 'Emerald', hex: '#059669' },
+      { name: 'Amber', hex: '#d97706' },
+      { name: 'Rose', hex: '#e11d48' },
+      { name: 'Purple', hex: '#7c3aed' },
+      { name: 'Sky', hex: '#0284c7' },
+      { name: 'Cyan', hex: '#0891b2' },
+      { name: 'Slate', hex: '#475569' },
+    ];
+
+    let selectedFolderColor = COLOR_PALETTE[0].hex;
+    let stagedUploadFiles = [];
+    let currentViewingDoc = null;
+    let viewerZoom = 1.0;
+    let viewerRotation = 0;
+
+    // Initial Academic Seed Data
+    const INITIAL_SEED_DATA = {
+      folders: [
+        { id: 'f-cs', name: 'Computer Science', parentId: null, category: 'subject', color: '#4f46e5', createdAt: Date.now() - 86400000 * 10, updatedAt: Date.now() },
+        { id: 'f-algo', name: 'Algorithms & Data Structures', parentId: 'f-cs', category: 'subject', color: '#0284c7', createdAt: Date.now() - 86400000 * 8, updatedAt: Date.now() },
+        { id: 'f-ch4', name: 'Chapter 4 - Graph Algorithms', parentId: 'f-algo', category: 'chapter', color: '#0891b2', createdAt: Date.now() - 86400000 * 5, updatedAt: Date.now() },
+        { id: 'f-unit2', name: 'Unit 2 - Dijkstra & Shortest Path', parentId: 'f-ch4', category: 'unit', color: '#3b82f6', createdAt: Date.now() - 86400000 * 3, updatedAt: Date.now() },
+        { id: 'f-math', name: 'Applied Mathematics', parentId: null, category: 'subject', color: '#059669', createdAt: Date.now() - 86400000 * 9, updatedAt: Date.now() },
+        { id: 'f-calc', name: 'Multivariable Calculus', parentId: 'f-math', category: 'chapter', color: '#10b981', createdAt: Date.now() - 86400000 * 4, updatedAt: Date.now() },
+        { id: 'f-phys', name: 'Physics & Engineering', parentId: null, category: 'subject', color: '#d97706', createdAt: Date.now() - 86400000 * 7, updatedAt: Date.now() },
+      ],
+      documents: [
+        {
+          id: 'doc-1',
+          name: 'Graph_Algorithms_Dijkstra_Proof.pdf',
+          folderId: 'f-unit2',
+          size: 2450000,
+          type: 'pdf',
+          mimeType: 'application/pdf',
+          starred: true,
+          createdAt: Date.now() - 86400000 * 2,
+          updatedAt: Date.now() - 86400000 * 2,
+          tags: ['Algorithms', 'Exam Prep'],
+          contentPreview: 'DIJKSTRA ALGORITHM FORMAL PROOF & COMPLEXITY ANALYSIS\n\nTheorem: Dijkstra algorithm finds the shortest path from a single source vertex to all other vertices in a weighted graph with non-negative edge weights in O((V + E) log V) time.\n\nInvariant: For each vertex u in S, dist[u] is the exact shortest path from source s to u.\nBase Case: At step 0, S = {s}, dist[s] = 0, which holds true.\nInductive Step: Suppose the invariant holds for |S| = k...'
+        },
+        {
+          id: 'doc-2',
+          name: 'Linear_Transformations_Summary.pdf',
+          folderId: 'f-calc',
+          size: 1820000,
+          type: 'pdf',
+          mimeType: 'application/pdf',
+          starred: true,
+          createdAt: Date.now() - 86400000 * 3,
+          updatedAt: Date.now() - 86400000 * 3,
+          tags: ['Math', 'Calculus'],
+          contentPreview: 'LINEAR TRANSFORMATIONS & EIGENVALUES CHEATSHEET\n\nDefinition: A mapping T: V -> W is a linear transformation if:\n1. T(u + v) = T(u) + T(v) for all u, v in V\n2. T(c * u) = c * T(u) for any scalar c\n\nCharacteristic Equation: det(A - lambda * I) = 0\nDiagonalization: A = P * D * P^(-1) if and only if A has n linearly independent eigenvectors.'
+        },
+        {
+          id: 'doc-3',
+          name: 'OS_Process_Scheduling_Notes.docx',
+          folderId: 'f-cs',
+          size: 980000,
+          type: 'docx',
+          mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          starred: false,
+          createdAt: Date.now() - 86400000 * 4,
+          updatedAt: Date.now() - 86400000 * 4,
+          tags: ['Operating Systems', 'Lecture Notes'],
+          contentPreview: 'OPERATING SYSTEMS - CPU SCHEDULING ALGORITHMS\n\n1. First-Come, First-Served (FCFS)\n- Non-preemptive scheduling.\n- Convoy effect: short processes wait for long processes.\n\n2. Shortest Job First (SJF)\n- Optimal average waiting time.\n- Difficulty: knowing the length of the next CPU burst in advance.\n\n3. Round Robin (RR)\n- Time quantum q (typically 10-100 ms).'
+        },
+        {
+          id: 'doc-4',
+          name: 'Quantum_Tunneling_Simulation.pptx',
+          folderId: 'f-phys',
+          size: 3450000,
+          type: 'pptx',
+          mimeType: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+          starred: false,
+          createdAt: Date.now() - 86400000 * 5,
+          updatedAt: Date.now() - 86400000 * 5,
+          tags: ['Physics', 'Presentation'],
+          contentPreview: 'Slide 1: Quantum Mechanics - Potential Barrier & Tunneling\nSlide 2: Schrödinger Time-Independent Equation\nSlide 3: Transmission Probability T = exp(-2 * K * L)\nSlide 4: Scanning Tunneling Microscopy (STM) Applications.'
+        },
+        {
+          id: 'doc-5',
+          name: 'Semester_Study_Schedule.xlsx',
+          folderId: null,
+          size: 430000,
+          type: 'xlsx',
+          mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          starred: true,
+          createdAt: Date.now() - 86400000 * 1,
+          updatedAt: Date.now() - 86400000 * 1,
+          tags: ['Planner'],
+          contentPreview: 'WEEKLY STUDY PLANNER\n\nMonday: 09:00 - 11:00 Algorithms, 14:00 - 16:00 Multivariable Calculus\nTuesday: 10:00 - 12:00 Physics Problem Set 4\nWednesday: 09:00 - 12:00 Research Paper Review & Lab work\nThursday: 13:00 - 16:00 Midterm Mock Exams'
+        },
+        {
+          id: 'doc-6',
+          name: 'Neural_Network_Architecture.png',
+          folderId: 'f-cs',
+          size: 1150000,
+          type: 'png',
+          mimeType: 'image/png',
+          starred: true,
+          createdAt: Date.now() - 86400000 * 2,
+          updatedAt: Date.now() - 86400000 * 2,
+          tags: ['AI', 'Diagram'],
+          contentPreview: 'IMAGE_DIAGRAM: Deep Feedforward Neural Network with 3 Hidden Layers, ReLU Activations, and Softmax Output.'
+        },
+        {
+          id: 'doc-7',
+          name: 'Calculus_Formulas_QuickRef.txt',
+          folderId: 'f-calc',
+          size: 45000,
+          type: 'txt',
+          mimeType: 'text/plain',
+          starred: false,
+          createdAt: Date.now() - 86400000 * 6,
+          updatedAt: Date.now() - 86400000 * 6,
+          tags: ['Formulas'],
+          contentPreview: 'CALCULUS QUICK FORMULAS\n\nd/dx [sin(x)] = cos(x)\nd/dx [cos(x)] = -sin(x)\nd/dx [e^x] = e^x\nd/dx [ln(x)] = 1/x\n\nGradient: grad(f) = [df/dx, df/dy, df/dz]\nDivergence: div(F) = dF1/dx + dF2/dy + dF3/dz\nCurl: curl(F) = del x F'
+        }
+      ],
+      trash: [],
+      settings: {
+        userName: 'Scholar',
+        userEmail: 'scholar@studyvault.edu',
+        institution: 'Institute of Science & Technology',
+        quotaBytes: 104857600, // 100 MB
+        theme: 'light'
+      }
+    };
+
+    /**
+     * Store Helper Methods
+     */
+    function getStore() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_SEED_DATA));
+          return JSON.parse(JSON.stringify(INITIAL_SEED_DATA));
+        }
+        return JSON.parse(raw);
+      } catch (e) {
+        console.error('Storage parse error, resetting to initial seed:', e);
+        return JSON.parse(JSON.stringify(INITIAL_SEED_DATA));
+      }
+    }
+
+    function saveStore(data) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      window.dispatchEvent(new Event('studyvault:data-changed'));
+      renderDashboard();
+    }
+
+    // Helper: format bytes
+    function formatBytes(bytes, decimals = 1) {
+      if (!bytes || bytes === 0) return '0 B';
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return (bytes / Math.pow(k, i)).toFixed(decimals) + ' ' + sizes[i];
+    }
+
+    // Helper: file category & styling
+    function getFileTypeInfo(type) {
+      const ext = (type || '').toLowerCase().replace('.', '');
+      switch (ext) {
+        case 'pdf':
+          return { label: 'PDF', bg: '#ef4444', icon: '📄', category: 'PDF Documents' };
+        case 'doc':
+        case 'docx':
+          return { label: 'DOC', bg: '#2563eb', icon: '📝', category: 'Word Documents' };
+        case 'ppt':
+        case 'pptx':
+          return { label: 'PPT', bg: '#ea580c', icon: '📽️', category: 'Presentations' };
+        case 'xls':
+        case 'xlsx':
+        case 'csv':
+          return { label: 'XLS', bg: '#10b981', icon: '📊', category: 'Spreadsheets' };
+        case 'png':
+        case 'jpg':
+        case 'jpeg':
+        case 'webp':
+        case 'svg':
+          return { label: 'IMG', bg: '#8b5cf6', icon: '🖼️', category: 'Images & Diagrams' };
+        case 'txt':
+        case 'md':
+          return { label: 'TXT', bg: '#64748b', icon: '📋', category: 'Notes & Text' };
+        default:
+          return { label: ext.toUpperCase().slice(0, 3) || 'FILE', bg: '#64748b', icon: '📁', category: 'Other Files' };
+      }
+    }
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.innerHTML = `<span>${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(10px)';
+        toast.style.transition = 'all 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    /**
+     * Dashboard Render Engine
+     */
+    function renderDashboard() {
+      const store = getStore();
+      const folders = store.folders || [];
+      const documents = store.documents || [];
+      const trash = store.trash || [];
+      const settings = store.settings || {};
+
+      // 1. Sidebar Badges & Info
+      document.getElementById('sidebarDocBadge').textContent = documents.length;
+      document.getElementById('sidebarTrashBadge').textContent = trash.length;
+      document.getElementById('navUserName').textContent = settings.userName || 'Scholar';
+      const initials = (settings.userName || 'SV').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+      document.getElementById('navAvatar').textContent = initials;
+
+      // 2. Sidebar Tree (top level subjects)
+      const treeList = document.getElementById('sidebarFolderTree');
+      treeList.innerHTML = '';
+      const topFolders = folders.filter(f => !f.parentId).slice(0, 5);
+      topFolders.forEach(folder => {
+        const docCount = documents.filter(d => d.folderId === folder.id).length;
+        const li = document.createElement('li');
+        li.className = 'tree-folder-item';
+        li.onclick = () => window.location.href = `library.html?folder=${folder.id}`;
+        li.innerHTML = `
+          <span class="tree-dot" style="background-color: ${folder.color || '#4f46e5'}"></span>
+          <span style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${folder.name}</span>
+          <span style="font-size: 11px; opacity: 0.6;">${docCount}</span>
+        `;
+        treeList.appendChild(li);
+      });
+
+      // 3. Storage Calculations
+      let totalUsedBytes = 0;
+      const categoryMap = {
+        'PDF Documents': { color: '#ef4444', bytes: 0, count: 0 },
+        'Word Documents': { color: '#2563eb', bytes: 0, count: 0 },
+        'Presentations': { color: '#ea580c', bytes: 0, count: 0 },
+        'Spreadsheets': { color: '#10b981', bytes: 0, count: 0 },
+        'Images & Diagrams': { color: '#8b5cf6', bytes: 0, count: 0 },
+        'Notes & Text': { color: '#64748b', bytes: 0, count: 0 },
+      };
+
+      documents.forEach(doc => {
+        const size = doc.size || 0;
+        totalUsedBytes += size;
+        const info = getFileTypeInfo(doc.type);
+        if (categoryMap[info.category]) {
+          categoryMap[info.category].bytes += size;
+          categoryMap[info.category].count += 1;
+        } else {
+          categoryMap['Notes & Text'].bytes += size;
+          categoryMap['Notes & Text'].count += 1;
+        }
+      });
+
+      const quotaBytes = settings.quotaBytes || 104857600;
+      const pctUsed = Math.min(100, ((totalUsedBytes / quotaBytes) * 100)).toFixed(1);
+
+      // Mini storage in sidebar
+      document.getElementById('storageMiniText').textContent = `${formatBytes(totalUsedBytes)} / ${formatBytes(quotaBytes)}`;
+      document.getElementById('storageMiniBar').style.width = `${pctUsed}%`;
+
+      // Stat Cards
+      document.getElementById('statTotalFolders').textContent = folders.length;
+      document.getElementById('statTotalDocs').textContent = documents.length;
+      document.getElementById('statStarredDocs').textContent = documents.filter(d => d.starred).length;
+      document.getElementById('statStorageUsed').textContent = formatBytes(totalUsedBytes);
+      document.getElementById('statStoragePct').textContent = `${pctUsed}% of ${formatBytes(quotaBytes)} quota`;
+
+      // 4. Quick Access Folders Grid
+      const quickGrid = document.getElementById('quickFoldersGrid');
+      quickGrid.innerHTML = '';
+      const displayFolders = folders.slice(0, 4);
+      if (displayFolders.length === 0) {
+        quickGrid.innerHTML = `<div style="grid-column: 1/-1; padding: 24px; text-align: center; color: var(--text-muted); background: #ffffff; border-radius: 12px; border: 1px dashed var(--border-color);">No folders yet. Click "+ New Folder" above to create one!</div>`;
+      } else {
+        displayFolders.forEach(folder => {
+          const docCount = documents.filter(d => d.folderId === folder.id).length;
+          const subCount = folders.filter(f => f.parentId === folder.id).length;
+          const card = document.createElement('div');
+          card.className = 'folder-card';
+          card.onclick = () => window.location.href = `library.html?folder=${folder.id}`;
+          card.innerHTML = `
+            <div class="folder-card-top">
+              <div class="folder-card-icon" style="background-color: ${folder.color}15; color: ${folder.color};">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+              </div>
+              <span class="folder-category-badge">${folder.category || 'Folder'}</span>
+            </div>
+            <div>
+              <div class="folder-name" title="${folder.name}">${folder.name}</div>
+            </div>
+            <div class="folder-meta">
+              <span>${docCount} document${docCount !== 1 ? 's' : ''}</span>
+              <span>${subCount > 0 ? `${subCount} subfolders` : 'Active'}</span>
+            </div>
+          `;
+          quickGrid.appendChild(card);
+        });
+      }
+
+      // 5. Recent Documents Table
+      const recentList = document.getElementById('recentDocsList');
+      recentList.innerHTML = '';
+      const sortedDocs = [...documents].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)).slice(0, 6);
+      if (sortedDocs.length === 0) {
+        recentList.innerHTML = `<div style="padding: 32px; text-align: center; color: var(--text-muted);">No documents yet. Click "Upload" to add study notes and PDFs!</div>`;
+      } else {
+        sortedDocs.forEach(doc => {
+          const fileInfo = getFileTypeInfo(doc.type);
+          const parentFolder = folders.find(f => f.id === doc.folderId);
+          const folderName = parentFolder ? parentFolder.name : 'Vault Root';
+          const dateStr = new Date(doc.createdAt || Date.now()).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+
+          const row = document.createElement('div');
+          row.className = 'doc-row';
+          row.innerHTML = `
+            <div class="doc-info" onclick="openDocViewer('${doc.id}')">
+              <div class="doc-badge-icon" style="background-color: ${fileInfo.bg};">
+                ${fileInfo.label}
+              </div>
+              <span class="doc-name" title="${doc.name}">${doc.name}</span>
+            </div>
+            <div class="doc-folder-tag" onclick="window.location.href='library.html?folder=${doc.folderId || ''}'" title="Open in Library">
+              📁 ${folderName}
+            </div>
+            <div class="doc-size">${formatBytes(doc.size)}</div>
+            <div class="doc-date">${dateStr}</div>
+            <div class="doc-actions">
+              <button class="star-btn ${doc.starred ? 'starred' : ''}" onclick="toggleStarDoc(event, '${doc.id}')" title="Star document">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="${doc.starred ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+              </button>
+            </div>
+          `;
+          recentList.appendChild(row);
+        });
+      }
+
+      // 6. Categorized Storage Breakdown Stacked Bar & Legend
+      const meterStacked = document.getElementById('stackedStorageMeter');
+      meterStacked.innerHTML = '';
+      const legendList = document.getElementById('storageLegendList');
+      legendList.innerHTML = '';
+
+      document.getElementById('breakdownUsedText').textContent = `${formatBytes(totalUsedBytes)} used (${pctUsed}%)`;
+      document.getElementById('breakdownQuotaText').textContent = `${formatBytes(quotaBytes)} Quota`;
+
+      Object.keys(categoryMap).forEach(key => {
+        const item = categoryMap[key];
+        const pct = totalUsedBytes > 0 ? ((item.bytes / totalUsedBytes) * 100).toFixed(1) : 0;
+
+        if (item.bytes > 0) {
+          const seg = document.createElement('div');
+          seg.className = 'meter-segment';
+          seg.style.width = `${pct}%`;
+          seg.style.backgroundColor = item.color;
+          seg.title = `${key}: ${formatBytes(item.bytes)} (${pct}%)`;
+          meterStacked.appendChild(seg);
+        }
+
+        const legendRow = document.createElement('div');
+        legendRow.className = 'legend-item';
+        legendRow.innerHTML = `
+          <div class="legend-left">
+            <span class="legend-dot" style="background-color: ${item.color};"></span>
+            <span class="legend-label">${key} (${item.count})</span>
+          </div>
+          <div class="legend-right">
+            <span class="legend-bytes">${formatBytes(item.bytes)}</span>
+            <span class="legend-pct">${pct}%</span>
+          </div>
+        `;
+        legendList.appendChild(legendRow);
+      });
+    }
+
+    /**
+     * Folder Creation Handlers
+     */
+    function initColorSwatches() {
+      const container = document.getElementById('colorSwatchesContainer');
+      container.innerHTML = '';
+      COLOR_PALETTE.forEach((color, idx) => {
+        const swatch = document.createElement('div');
+        swatch.className = `color-swatch ${idx === 0 ? 'selected' : ''}`;
+        swatch.style.backgroundColor = color.hex;
+        swatch.title = color.name;
+        swatch.onclick = () => {
+          document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+          swatch.classList.add('selected');
+          selectedFolderColor = color.hex;
+        };
+        container.appendChild(swatch);
+      });
+    }
+
+    function openNewFolderModal() {
+      const store = getStore();
+      const parentSelect = document.getElementById('folderParentSelect');
+      parentSelect.innerHTML = '<option value="">Root (Top Level Subject)</option>';
+      (store.folders || []).forEach(f => {
+        const opt = document.createElement('option');
+        opt.value = f.id;
+        opt.textContent = `${f.category ? `[${f.category.toUpperCase()}] ` : ''}${f.name}`;
+        parentSelect.appendChild(opt);
+      });
+      document.getElementById('folderNameInput').value = '';
+      document.getElementById('folderModal').classList.add('active');
+    }
+
+    function closeFolderModal() {
+      document.getElementById('folderModal').classList.remove('active');
+    }
+
+    function handleCreateFolder(e) {
+      e.preventDefault();
+      const name = document.getElementById('folderNameInput').value.trim();
+      const parentId = document.getElementById('folderParentSelect').value || null;
+      const category = document.getElementById('folderCategorySelect').value || 'subject';
+
+      if (!name) return;
+
+      const store = getStore();
+      const newFolder = {
+        id: 'f-' + Date.now(),
+        name,
+        parentId,
+        category,
+        color: selectedFolderColor,
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+      };
+
+      store.folders.push(newFolder);
+      saveStore(store);
+      closeFolderModal();
+      showToast(`Folder "${name}" created successfully!`, 'success');
+    }
+
+    /**
+     * Document Upload Handlers
+     */
+    function openUploadModal() {
+      const store = getStore();
+      const parentSelect = document.getElementById('uploadTargetFolderSelect');
+      parentSelect.innerHTML = '<option value="">Vault Root</option>';
+      (store.folders || []).forEach(f => {
+        const opt = document.createElement('option');
+        opt.value = f.id;
+        opt.textContent = `📁 ${f.name}`;
+        parentSelect.appendChild(opt);
+      });
+
+      stagedUploadFiles = [];
+      document.getElementById('selectedFilesPreview').innerHTML = '';
+      document.getElementById('uploadModal').classList.add('active');
+    }
+
+    function closeUploadModal() {
+      document.getElementById('uploadModal').classList.remove('active');
+    }
+
+    function handleFileSelect(e) {
+      const files = Array.from(e.target.files || []);
+      addFilesToStage(files);
+    }
+
+    function addFilesToStage(files) {
+      stagedUploadFiles = [...stagedUploadFiles, ...files];
+      const preview = document.getElementById('selectedFilesPreview');
+      preview.innerHTML = stagedUploadFiles.map(f => `
+        <div style="display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid #f1f5f9;">
+          <span>📎 ${f.name}</span>
+          <span style="color:#64748b;">${formatBytes(f.size)}</span>
+        </div>
+      `).join('');
+    }
+
+    // Drag and Drop
+    const dropzone = document.getElementById('uploadDropzone');
+    dropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropzone.classList.add('dragover');
+    });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('dragover');
+      if (e.dataTransfer && e.dataTransfer.files) {
+        addFilesToStage(Array.from(e.dataTransfer.files));
+      }
+    });
+
+    async function handleUploadSubmit(e) {
+      e.preventDefault();
+      if (stagedUploadFiles.length === 0) {
+        showToast('Please select at least one file to upload', 'error');
+        return;
+      }
+
+      const folderId = document.getElementById('uploadTargetFolderSelect').value || null;
+      const store = getStore();
+
+      for (const file of stagedUploadFiles) {
+        const ext = file.name.split('.').pop().toLowerCase();
+        let preview = 'Study Document: ' + file.name;
+
+        // Read text files or simulate preview
+        if (['txt', 'md'].includes(ext)) {
+          try {
+            preview = await file.text();
+          } catch (err) {
+            console.warn(err);
+          }
+        }
+
+        const newDoc = {
+          id: 'doc-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4),
+          name: file.name,
+          folderId: folderId,
+          size: file.size,
+          type: ext,
+          mimeType: file.type || 'application/octet-stream',
+          starred: false,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+          tags: ['Uploaded'],
+          contentPreview: preview
+        };
+
+        store.documents.push(newDoc);
+      }
+
+      saveStore(store);
+      closeUploadModal();
+      showToast(`Uploaded ${stagedUploadFiles.length} file(s) successfully!`, 'success');
+      stagedUploadFiles = [];
+    }
+
+    /**
+     * Document Starring
+     */
+    function toggleStarDoc(e, docId) {
+      e.stopPropagation();
+      const store = getStore();
+      const doc = store.documents.find(d => d.id === docId);
+      if (doc) {
+        doc.starred = !doc.starred;
+        saveStore(store);
+        showToast(doc.starred ? 'Added to Starred Notes' : 'Removed from Starred Notes');
+      }
+    }
+
+    /**
+     * Full Document Viewer Modal
+     */
+    function openDocViewer(docId) {
+      const store = getStore();
+      const doc = store.documents.find(d => d.id === docId);
+      if (!doc) return;
+
+      currentViewingDoc = doc;
+      viewerZoom = 1.0;
+      viewerRotation = 0;
+      document.getElementById('viewerZoomLabel').textContent = '100%';
+
+      const titleEl = document.getElementById('viewerDocTitle');
+      titleEl.innerHTML = `
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+        <span>${doc.name}</span>
+        <span style="font-size:11px; opacity:0.7; font-weight:normal; margin-left:6px;">(${formatBytes(doc.size)})</span>
+      `;
+
+      renderViewerContent(doc);
+      document.getElementById('docViewerModal').classList.add('active');
+    }
+
+    function renderViewerContent(doc) {
+      const container = document.getElementById('viewerContentArea');
+      const ext = (doc.type || '').toLowerCase();
+      const previewText = doc.contentPreview || 'No additional preview text available.';
+
+      if (ext === 'pdf') {
+        container.innerHTML = `
+          <div class="viewer-page-surface" id="viewerTransformSurface">
+            <div style="border-bottom: 2px solid #0f172a; padding-bottom: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end;">
+              <div>
+                <h2 style="font-size: 20px; font-weight: bold; margin-bottom: 4px;">STUDYVAULT ACADEMIC VAULT - DOCUMENT PREVIEW</h2>
+                <div style="font-size: 13px; color: #64748b; font-family: sans-serif;">File: ${doc.name} &bull; Certified Study Material</div>
+              </div>
+              <div style="font-size: 12px; color: #64748b; font-family: sans-serif;">Page 1 of 1</div>
+            </div>
+            <div style="white-space: pre-wrap; font-size: 14px; color: #1e293b; line-height: 1.8;">
+              ${escapeHtml(previewText)}
+            </div>
+            <div style="margin-top: 40px; padding-top: 16px; border-top: 1px solid #e2e8f0; font-size: 11px; color: #94a3b8; font-family: sans-serif; display: flex; justify-content: space-between;">
+              <span>StudyVault Secure Document Storage</span>
+              <span>Encrypted User Signature Verified</span>
+            </div>
+          </div>
+        `;
+      } else if (['png', 'jpg', 'jpeg', 'webp', 'svg'].includes(ext)) {
+        container.innerHTML = `
+          <div class="viewer-page-surface" id="viewerTransformSurface" style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding: 20px;">
+            <div style="width: 100%; max-width: 500px; height: 320px; background: linear-gradient(135deg, #3b82f615, #8b5cf615); border: 2px dashed #93c5fd; border-radius: 12px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; margin-bottom: 16px;">
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+              <span style="font-weight: 700; color: #1e3a8a; font-family: sans-serif;">${doc.name}</span>
+              <span style="font-size: 12px; color: #64748b; font-family: sans-serif;">High Resolution Academic Diagram &bull; ${formatBytes(doc.size)}</span>
+            </div>
+            <div style="font-size: 13px; color: #475569; font-family: sans-serif; text-align: center;">${escapeHtml(previewText)}</div>
+          </div>
+        `;
+      } else {
+        container.innerHTML = `
+          <div class="viewer-page-surface" id="viewerTransformSurface">
+            <h3 style="font-size: 18px; margin-bottom: 14px; font-family: sans-serif; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">
+              📄 ${doc.name}
+            </h3>
+            <pre style="white-space: pre-wrap; font-family: Consolas, Monaco, monospace; font-size: 13px; color: #0f172a; background: #f8fafc; padding: 16px; border-radius: 8px; border: 1px solid #e2e8f0; line-height: 1.6;">${escapeHtml(previewText)}</pre>
+          </div>
+        `;
+      }
+    }
+
+    function adjustViewerZoom(delta) {
+      viewerZoom = Math.max(0.4, Math.min(2.5, viewerZoom + delta));
+      document.getElementById('viewerZoomLabel').textContent = Math.round(viewerZoom * 100) + '%';
+      applyViewerTransform();
+    }
+
+    function rotateViewerDoc() {
+      viewerRotation = (viewerRotation + 90) % 360;
+      applyViewerTransform();
+    }
+
+    function applyViewerTransform() {
+      const surface = document.getElementById('viewerTransformSurface');
+      if (surface) {
+        surface.style.transform = `scale(${viewerZoom}) rotate(${viewerRotation}deg)`;
+      }
+    }
+
+    function downloadCurrentViewerDoc() {
+      if (!currentViewingDoc) return;
+      const content = currentViewingDoc.contentPreview || 'StudyVault Document Content';
+      const blob = new Blob([content], { type: currentViewingDoc.mimeType || 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = currentViewingDoc.name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast(`Downloaded ${currentViewingDoc.name}`, 'success');
+    }
+
+    function closeViewerModal() {
+      document.getElementById('docViewerModal').classList.remove('active');
+      currentViewingDoc = null;
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    /**
+     * Live Global Search
+     */
+    const searchInput = document.getElementById('globalSearchInput');
+    const searchDropdown = document.getElementById('searchResultsDropdown');
+
+    searchInput.addEventListener('input', (e) => {
+      const q = e.target.value.trim().toLowerCase();
+      if (!q) {
+        searchDropdown.classList.remove('active');
+        searchDropdown.innerHTML = '';
+        return;
+      }
+
+      const store = getStore();
+      const matchedFolders = (store.folders || []).filter(f => f.name.toLowerCase().includes(q));
+      const matchedDocs = (store.documents || []).filter(d => d.name.toLowerCase().includes(q) || (d.tags && d.tags.some(t => t.toLowerCase().includes(q))));
+
+      if (matchedFolders.length === 0 && matchedDocs.length === 0) {
+        searchDropdown.innerHTML = `<div style="padding: 16px; text-align: center; color: var(--text-muted); font-size: 13px;">No results found for "${escapeHtml(q)}"</div>`;
+        searchDropdown.classList.add('active');
+        return;
+      }
+
+      let html = '';
+      if (matchedFolders.length > 0) {
+        html += `<div class="search-result-group"><div class="search-group-header">Folders (${matchedFolders.length})</div>`;
+        matchedFolders.slice(0, 4).forEach(f => {
+          html += `
+            <div class="search-result-item" onclick="window.location.href='library.html?folder=${f.id}'">
+              <span style="color:${f.color || '#3b82f6'}">📁</span>
+              <div>
+                <div class="search-result-title">${escapeHtml(f.name)}</div>
+                <div class="search-result-sub">${f.category ? f.category.toUpperCase() : 'Folder'} &bull; Click to open</div>
+              </div>
+            </div>
+          `;
+        });
+        html += `</div>`;
+      }
+
+      if (matchedDocs.length > 0) {
+        html += `<div class="search-result-group"><div class="search-group-header">Documents (${matchedDocs.length})</div>`;
+        matchedDocs.slice(0, 5).forEach(d => {
+          const info = getFileTypeInfo(d.type);
+          html += `
+            <div class="search-result-item" onclick="openDocViewer('${d.id}'); document.getElementById('searchResultsDropdown').classList.remove('active');">
+              <span style="font-size: 16px;">${info.icon}</span>
+              <div>
+                <div class="search-result-title">${escapeHtml(d.name)}</div>
+                <div class="search-result-sub">${info.label} &bull; ${formatBytes(d.size)}</div>
+              </div>
+            </div>
+          `;
+        });
+        html += `</div>`;
+      }
+
+      searchDropdown.innerHTML = html;
+      searchDropdown.classList.add('active');
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!searchInput.contains(e.target) && !searchDropdown.contains(e.target)) {
+        searchDropdown.classList.remove('active');
+      }
+    });
+
+    // Keyboard shortcut Ctrl+K or / to search
+    document.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        searchInput.focus();
+      }
+      if (e.key === 'Escape') {
+        closeFolderModal();
+        closeUploadModal();
+        closeViewerModal();
+        searchDropdown.classList.remove('active');
+      }
+    });
+
+    // Mobile Sidebar Toggle
+    document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+      document.getElementById('sidebar').classList.toggle('open');
+    });
+
+    // Listen for cross-page data changes
+    window.addEventListener('storage', () => renderDashboard());
+    window.addEventListener('studyvault:data-changed', () => renderDashboard());
+
+    // Init
+    document.addEventListener('DOMContentLoaded', () => {
+      initColorSwatches();
+      renderDashboard();
+    });
+  </script>
+</body>
+</html>

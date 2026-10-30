@@ -1,0 +1,6 @@
+{
+  "name": "StudyVault - Personal Study Notes & Document Storage",
+  "description": "Multi-page personal study notes and document vault. Organize folders, upload and preview PDFs and study documents, manage trash, and backup data.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
